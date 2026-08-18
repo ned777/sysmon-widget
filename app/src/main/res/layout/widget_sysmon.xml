@@ -14,53 +14,28 @@
         android:textColor="@color/white"
         android:textSize="18sp"
         android:textStyle="bold"
+        android:gravity="center"
         android:singleLine="true"
         android:ellipsize="end"
         android:text="--" />
 
-    <TextView
-        android:id="@+id/ramText"
+    <ListView
+        android:id="@+id/statsList"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:layout_marginTop="4dp"
-        android:textColor="@color/white"
-        android:textSize="16sp"
-        android:text="RAM: --" />
+        android:divider="@null"
+        android:scrollbars="none" />
 
     <TextView
-        android:id="@+id/cpuText"
+        android:id="@+id/updatedText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="3dp"
-        android:textColor="@color/white"
-        android:textSize="16sp"
-        android:text="CPU: --" />
-
-    <TextView
-        android:id="@+id/storageText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="3dp"
-        android:textColor="@color/white"
-        android:textSize="16sp"
-        android:text="Storage: --" />
-
-    <TextView
-        android:id="@+id/netText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="3dp"
-        android:textColor="@color/white"
-        android:textSize="16sp"
-        android:text="Network: --" />
-
-    <TextView
-        android:id="@+id/claudeText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="3dp"
-        android:textColor="@color/white"
-        android:textSize="16sp"
-        android:text="Claude today: --" />
+        android:layout_marginTop="2dp"
+        android:textColor="@color/widget_text_secondary"
+        android:textSize="11sp"
+        android:gravity="center"
+        android:text="" />
 
 </LinearLayout>
