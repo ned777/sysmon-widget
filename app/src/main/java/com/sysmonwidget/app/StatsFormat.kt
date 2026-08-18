@@ -15,8 +15,6 @@ object StatsFormat {
     }
 
     fun buildStatRows(json: JSONObject, reachable: Boolean): List<CharSequence> {
-        val statusRow = boldLabel("Status: ", if (reachable) "Online" else "Offline")
-
         val ram = json.getJSONObject("ram")
         val ramUsedGb = ram.getInt("used_mb") / 1024.0
         val ramTotalGb = ram.getInt("total_mb") / 1024.0
@@ -28,30 +26,22 @@ object StatsFormat {
             "%dGB out of %dGB".format(storage.getInt("used_gb"), storage.getInt("total_gb"))
         )
 
-        val net = json.getJSONObject("network")
-        val netRow = boldLabel(
-            "Network: ",
-            "↓${formatRate(net.getLong("rx_bytes_per_sec"))} ↑${formatRate(net.getLong("tx_bytes_per_sec"))}"
-        )
+        val tempValue = if (json.isNull("cpu_temp_c")) "N/A" else "%.0f°C".format(json.getDouble("cpu_temp_c"))
+        val tempRow = boldLabel("Temp: ", tempValue)
 
         val claude = json.getJSONObject("claude")
-        val tokens = claude.getJSONObject("tokens_today")
-        val inTok = tokens.getLong("input") + tokens.optLong("cache_read", 0)
-        val outTok = tokens.getLong("output")
-        val cost = claude.getDouble("est_cost_today_usd")
-        val claudeRow = boldLabel(
-            "Claude today: ",
-            "%s in / %s out · ~$%.2f".format(formatTokens(inTok), formatTokens(outTok), cost)
-        )
+        val dailyRow = boldLabel("Claude (Daily): ", tokenSummary(claude.getJSONObject("tokens_daily")))
+        val weeklyRow = boldLabel("Claude (Weekly): ", tokenSummary(claude.getJSONObject("tokens_weekly")))
 
-        return listOf(ramRow, storageRow, netRow, claudeRow, statusRow)
+        val statusRow = boldLabel("Status: ", if (reachable) "Online" else "Offline")
+
+        return listOf(ramRow, storageRow, tempRow, dailyRow, weeklyRow, statusRow)
     }
 
-    fun formatRate(bytesPerSec: Long): String {
-        if (bytesPerSec < 1024) return "${bytesPerSec}B/s"
-        val kb = bytesPerSec / 1024.0
-        if (kb < 1024) return "%.0fKB/s".format(kb)
-        return "%.1fMB/s".format(kb / 1024.0)
+    private fun tokenSummary(tokens: JSONObject): String {
+        val inTok = tokens.getLong("input") + tokens.optLong("cache_read", 0)
+        val outTok = tokens.getLong("output")
+        return "${formatTokens(inTok)} in / ${formatTokens(outTok)} out"
     }
 
     fun formatTokens(count: Long): String {
