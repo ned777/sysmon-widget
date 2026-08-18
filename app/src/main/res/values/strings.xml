@@ -1,10 +1,14 @@
 <resources>
     <string name="app_name">DEVICE MONITOR AGENT</string>
     <string name="app_subtitle">Created by Ned Nguyen</string>
-    <string name="server_address_hint">192.168.1.50:8765</string>
+    <string name="devices_header">Devices</string>
+    <string name="add_device">Add device</string>
+    <string name="device_name_hint">e.g. Home PC</string>
+    <string name="device_address_hint">192.168.1.50:8765</string>
+    <string name="device_fields_required">Enter a name and address</string>
     <string name="save">Save</string>
-    <string name="saved_toast">Saved</string>
-    <string name="server_address_label">Monitor agent address (ip:port)</string>
+    <string name="choose_device">Choose a device</string>
+    <string name="no_devices_config">No devices yet. Add one in the app, then try adding the widget again.</string>
     <string name="widget_unreachable">Unreachable</string>
-    <string name="widget_no_server">Set server address</string>
+    <string name="widget_no_device">No device — open app to add one</string>
 </resources>

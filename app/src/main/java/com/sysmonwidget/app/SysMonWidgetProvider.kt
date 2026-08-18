@@ -6,6 +6,7 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.net.Uri
 import android.widget.RemoteViews
 import java.text.SimpleDateFormat
@@ -52,9 +53,19 @@ class SysMonWidgetProvider : AppWidgetProvider() {
         }
     }
 
+    override fun onDeleted(context: Context, appWidgetIds: IntArray) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val editor = prefs.edit()
+        appWidgetIds.forEach { id ->
+            editor.remove("widget_${id}_device_id")
+            editor.remove("widget_${id}_last_stats_json")
+            editor.remove("widget_${id}_last_stats_time")
+        }
+        editor.apply()
+    }
+
     private fun updateOneWidget(context: Context, manager: AppWidgetManager, id: Int) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val server = prefs.getString("server_address", null)
         val views = RemoteViews(context.packageName, R.layout.widget_sysmon)
         attachListAdapter(context, views, id)
 
@@ -65,30 +76,28 @@ class SysMonWidgetProvider : AppWidgetProvider() {
         )
         views.setOnClickPendingIntent(R.id.widgetRoot, pendingIntent)
 
-        if (server.isNullOrBlank()) {
-            views.setTextViewText(R.id.titleText, context.getString(R.string.widget_no_server))
+        val device = resolveDevice(context, prefs, id)
+        if (device == null) {
+            views.setTextViewText(R.id.titleText, context.getString(R.string.widget_no_device))
             views.setTextViewText(R.id.updatedText, "")
             manager.updateAppWidget(id, views)
             manager.notifyAppWidgetViewDataChanged(id, R.id.statsList)
             return
         }
 
-        val json = StatsClient.fetchStats(server)
+        val json = StatsClient.fetchStats(device.address)
         if (json != null) {
             prefs.edit()
-                .putString("last_stats_json", json.toString())
-                .putLong("last_stats_time", System.currentTimeMillis())
+                .putString("widget_${id}_last_stats_json", json.toString())
+                .putLong("widget_${id}_last_stats_time", System.currentTimeMillis())
                 .apply()
-            views.setTextViewText(R.id.titleText, server)
-            views.setTextViewText(
-                R.id.updatedText,
-                "Updated ${timeString(System.currentTimeMillis())}"
-            )
+            views.setTextViewText(R.id.titleText, device.name)
+            views.setTextViewText(R.id.updatedText, "Updated ${timeString(System.currentTimeMillis())}")
         } else {
-            val cached = prefs.getString("last_stats_json", null)
-            val lastTime = prefs.getLong("last_stats_time", 0L)
+            val cached = prefs.getString("widget_${id}_last_stats_json", null)
+            val lastTime = prefs.getLong("widget_${id}_last_stats_time", 0L)
             if (cached != null) {
-                views.setTextViewText(R.id.titleText, server)
+                views.setTextViewText(R.id.titleText, device.name)
                 views.setTextViewText(
                     R.id.updatedText,
                     "${context.getString(R.string.widget_unreachable)} — last ${timeString(lastTime)}"
@@ -96,7 +105,7 @@ class SysMonWidgetProvider : AppWidgetProvider() {
             } else {
                 views.setTextViewText(
                     R.id.titleText,
-                    "$server — ${context.getString(R.string.widget_unreachable)}"
+                    "${device.name} — ${context.getString(R.string.widget_unreachable)}"
                 )
                 views.setTextViewText(R.id.updatedText, "")
             }
@@ -104,6 +113,23 @@ class SysMonWidgetProvider : AppWidgetProvider() {
 
         manager.updateAppWidget(id, views)
         manager.notifyAppWidgetViewDataChanged(id, R.id.statsList)
+    }
+
+    /** Resolves the device assigned to this widget instance, migrating the old
+     *  single-global-address setting (pre-multi-device) into a device the first
+     *  time an un-migrated widget is updated. */
+    private fun resolveDevice(context: Context, prefs: SharedPreferences, id: Int): Device? {
+        val deviceId = prefs.getString("widget_${id}_device_id", null)
+        if (deviceId != null) {
+            return DeviceStore.findDevice(context, deviceId)
+        }
+        val legacyAddress = prefs.getString("server_address", null)
+        if (!legacyAddress.isNullOrBlank()) {
+            val device = DeviceStore.addDevice(context, "This computer", legacyAddress)
+            prefs.edit().putString("widget_${id}_device_id", device.id).apply()
+            return device
+        }
+        return null
     }
 
     private fun attachListAdapter(context: Context, views: RemoteViews, id: Int) {

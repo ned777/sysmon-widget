@@ -1,5 +1,6 @@
 package com.sysmonwidget.app
 
+import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
@@ -8,11 +9,17 @@ import org.json.JSONObject
 
 class SysMonRemoteViewsService : RemoteViewsService() {
     override fun onGetViewFactory(intent: Intent): RemoteViewsFactory {
-        return StatsRemoteViewsFactory(applicationContext)
+        val appWidgetId = intent.getIntExtra(
+            AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID
+        )
+        return StatsRemoteViewsFactory(applicationContext, appWidgetId)
     }
 }
 
-class StatsRemoteViewsFactory(private val context: Context) : RemoteViewsService.RemoteViewsFactory {
+class StatsRemoteViewsFactory(
+    private val context: Context,
+    private val appWidgetId: Int
+) : RemoteViewsService.RemoteViewsFactory {
 
     private var rows: List<CharSequence> = emptyList()
 
@@ -20,7 +27,7 @@ class StatsRemoteViewsFactory(private val context: Context) : RemoteViewsService
 
     override fun onDataSetChanged() {
         val prefs = context.getSharedPreferences("sysmon", Context.MODE_PRIVATE)
-        val cached = prefs.getString("last_stats_json", null)
+        val cached = prefs.getString("widget_${appWidgetId}_last_stats_json", null)
         rows = if (cached != null) {
             try {
                 StatsFormat.buildStatRows(JSONObject(cached))
