@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The same sunset-gradient-plus-grid look as drawable/widget_background.xml,
+  but flat (no rounded corners, no border stroke) — meant to fill an entire
+  Activity screen edge-to-edge rather than sit inside a bordered widget card.
+  Set as android:windowBackground in themes.xml, so every screen using
+  Theme.SysMonWidget gets this automatically without each layout needing its
+  own android:background.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:startColor="@color/sunset_top"
+                android:centerColor="@color/sunset_mid"
+                android:endColor="@color/sunset_bottom" />
+        </shape>
+    </item>
+
+    <item android:drawable="@drawable/retro_grid_overlay" />
+
+</layer-list>

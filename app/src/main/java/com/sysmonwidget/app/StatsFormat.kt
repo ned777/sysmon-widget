@@ -19,15 +19,15 @@ import org.json.JSONObject
 object StatsFormat {
 
     // These two colors are used to paint every stat row: the label part (e.g.
-    // "RAM: ") in electric purple, and the value part (e.g. "8GB out of 16GB")
-    // in neon blue. Color.parseColor() reads a hex color string ("#RRGGBB")
+    // "RAM: ") in neon magenta, and the value part (e.g. "8GB out of 16GB")
+    // in off-white. Color.parseColor() reads a hex color string ("#RRGGBB")
     // the same way you'd write one in CSS, and turns it into the Int format
-    // Android's drawing APIs expect internally. These match @color/retro_purple
-    // and @color/retro_blue in colors.xml — kept as literal hex here (rather
+    // Android's drawing APIs expect internally. These match @color/retro_magenta
+    // and @color/retro_white in colors.xml — kept as literal hex here (rather
     // than a resource lookup) because SpannableString styling happens in plain
     // Kotlin code with no Context/resources readily at hand at this point.
-    private val LABEL_COLOR = Color.parseColor("#9D4EDD")
-    private val VALUE_COLOR = Color.parseColor("#3A86FF")
+    private val LABEL_COLOR = Color.parseColor("#FF4FA3")
+    private val VALUE_COLOR = Color.parseColor("#F2F2FF")
 
     // `const val` are compile-time constants — plain string labels we use as keys
     // for "which stats has the user chosen to show on this widget". Using named

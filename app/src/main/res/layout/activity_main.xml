@@ -13,24 +13,37 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/black"
     android:padding="24dp">
+    <!--
+      No explicit android:background here on purpose — the sunset-gradient-
+      plus-grid look comes from android:windowBackground in themes.xml, so
+      every screen using Theme.SysMonWidget gets it automatically instead of
+      each layout repeating it.
+    -->
 
-    <!-- The big app title at the top, in pink. -->
+    <!--
+      The big app title at the top, glowing cyan. android:shadow* draws a soft
+      colored blur behind the text — a cheap, layout-only way to fake a "neon
+      sign" glow without needing any extra drawables or code.
+    -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/app_title"
-        android:textColor="@color/retro_pink"
+        android:textColor="@color/retro_cyan"
         android:textSize="22sp"
         android:textStyle="bold"
+        android:shadowColor="@color/retro_cyan"
+        android:shadowDx="0"
+        android:shadowDy="0"
+        android:shadowRadius="12"
         android:layout_marginBottom="4dp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/app_subtitle"
-        android:textColor="@color/retro_blue"
+        android:textColor="@color/retro_magenta"
         android:textSize="13sp"
         android:textStyle="italic"
         android:layout_marginBottom="20dp" />
@@ -39,7 +52,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/devices_header"
-        android:textColor="@color/retro_blue"
+        android:textColor="@color/retro_magenta"
         android:textSize="18sp"
         android:textStyle="bold"
         android:layout_marginBottom="8dp" />

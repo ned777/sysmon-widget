@@ -17,14 +17,19 @@
       automatically based on that system setting.
     -->
     <style name="Theme.SysMonWidget" parent="Theme.MaterialComponents.NoActionBar">
-        <item name="colorPrimary">@color/retro_blue</item>
+        <item name="colorPrimary">@color/retro_cyan</item>
         <item name="colorPrimaryDark">@color/black</item>
-        <item name="colorAccent">@color/retro_blue</item>
-        <!-- android:windowBackground is the default fill behind EVERY screen using this theme. -->
-        <item name="android:windowBackground">@color/black</item>
+        <item name="colorAccent">@color/retro_cyan</item>
+        <!--
+          android:windowBackground is the default fill behind EVERY screen using
+          this theme — pointing it at the sunset-gradient-plus-grid drawable
+          (rather than a plain color) means every Activity gets the retro look
+          automatically, with no per-layout android:background needed.
+        -->
+        <item name="android:windowBackground">@drawable/app_background</item>
         <!-- Default text color for most TextViews that don't set their own android:textColor. -->
-        <item name="android:textColorPrimary">@color/retro_blue</item>
-        <item name="android:textColorSecondary">@color/retro_blue</item>
+        <item name="android:textColorPrimary">@color/retro_white</item>
+        <item name="android:textColorSecondary">@color/retro_white</item>
         <!-- The faint placeholder text color shown inside empty EditText fields. -->
         <item name="android:textColorHint">@color/widget_text_secondary</item>
     </style>

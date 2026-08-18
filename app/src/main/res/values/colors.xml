@@ -1,8 +1,8 @@
 <!--
   Every named color the app uses, in one place. Any layout XML can reference one
-  of these with "@color/retro_pink" etc, and any Kotlin code can look one up with
-  ContextCompat.getColor(context, R.color.retro_pink) or (as StatsFormat.kt does
-  for its SpannableString colors) Color.parseColor("#00F0FF") using the same hex
+  of these with "@color/retro_cyan" etc, and any Kotlin code can look one up with
+  ContextCompat.getColor(context, R.color.retro_cyan) or (as StatsFormat.kt does
+  for its SpannableString colors) Color.parseColor("#00E5FF") using the same hex
   value directly. Centralizing colors here means changing the whole app's theme
   is mostly just editing this one file.
 -->
@@ -14,18 +14,25 @@
     <!--
       #FF000000 is an 8-digit hex color: the first pair (FF) is the alpha
       (opacity) channel, and 000000 is plain black — so this is fully-opaque
-      black, used as the widget's background fill color.
+      black. Kept for the widget's border-shape fill (the sunset gradient sits
+      underneath it via a separate layer — see drawable/widget_background.xml).
     -->
     <color name="widget_bg">#FF000000</color>
     <color name="widget_text_secondary">#B0BEC5</color>
 
     <!--
-      80s / synthwave palette, used consistently across both the home-screen
-      widget and the app's own screens: hot pink for titles/status text,
-      electric purple for device names/labels/the widget border, and neon
-      blue for addresses/values/everything else.
+      Synthwave "sunset over a grid" palette — a moody dark gradient (night sky
+      fading into a dusk horizon) with neon cyan/magenta/orange accents on top,
+      used consistently across both the home-screen widget and the app's own
+      screens. Kept dark throughout on purpose so text stays readable no matter
+      where it sits against the gradient.
     -->
-    <color name="retro_pink">#FF2E97</color>
-    <color name="retro_purple">#9D4EDD</color>
-    <color name="retro_blue">#3A86FF</color>
+    <color name="sunset_top">#120820</color>
+    <color name="sunset_mid">#6A1B6E</color>
+    <color name="sunset_bottom">#B33E1E</color>
+
+    <color name="retro_cyan">#00E5FF</color>
+    <color name="retro_magenta">#FF4FA3</color>
+    <color name="retro_orange">#FF9F5A</color>
+    <color name="retro_white">#F2F2FF</color>
 </resources>
