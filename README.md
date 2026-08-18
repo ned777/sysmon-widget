@@ -83,10 +83,30 @@ cd agent
 Override the port with `MONITOR_PORT`. Run one instance per machine you
 want to monitor.
 
-`agent/sysmon-agent.service` is an optional `systemd --user` unit if you'd
-rather it start automatically and restart on failure — it's not installed
-by default; the agent is meant to be something you start manually when you
-want it running.
+### Running it as a system service (survives logout/reboot)
+
+Running it manually in a terminal only lasts as long as that session. To
+have it start at boot and keep running whether or not anyone is logged in
+— e.g. so it comes back on its own after a power outage — install
+`agent/sysmon-agent.service` as a **system-level** (not `--user`) systemd
+unit:
+
+```sh
+sudo cp agent/sysmon-agent.service /etc/systemd/system/sysmon-agent.service
+sudo nano /etc/systemd/system/sysmon-agent.service   # fill in your username + the real path to monitor_agent.py
+sudo systemctl daemon-reload
+sudo systemctl enable --now sysmon-agent
+```
+
+`WantedBy=multi-user.target` + `enable` means it starts during normal boot,
+independent of any user session — no login required, and `Restart=on-failure`
+brings it back if it ever crashes. Check on it with
+`sudo systemctl status sysmon-agent` or `journalctl -u sysmon-agent -f`.
+
+This isn't installed automatically; do it per machine you want always-on
+monitoring for. (Claude Code doesn't need to be installed on a monitored
+machine — if `~/.claude/projects` doesn't exist there, the Claude
+Daily/Weekly rows just report zero instead of erroring.)
 
 **No authentication.** Anything that can reach the port can read these
 stats. That's an accepted tradeoff for a personal tool running over a
