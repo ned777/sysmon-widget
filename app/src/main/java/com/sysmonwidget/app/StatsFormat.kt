@@ -44,7 +44,7 @@ object StatsFormat {
             "%s in / %s out · ~$%.2f".format(formatTokens(inTok), formatTokens(outTok), cost)
         )
 
-        return listOf(statusRow, ramRow, storageRow, netRow, claudeRow)
+        return listOf(ramRow, storageRow, netRow, claudeRow, statusRow)
     }
 
     fun formatRate(bytesPerSec: Long): String {
