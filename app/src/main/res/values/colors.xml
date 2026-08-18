@@ -2,6 +2,12 @@
     <color name="teal_700">#00695C</color>
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
-    <color name="widget_bg">#EE102A27</color>
+    <color name="widget_bg">#FF000000</color>
     <color name="widget_text_secondary">#B0BEC5</color>
+
+    <!-- 80s theme -->
+    <color name="retro_yellow">#FFE600</color>
+    <color name="retro_cyan">#00F0FF</color>
+    <color name="retro_teal">#1DE9B6</color>
+    <color name="retro_pink">#FF2E97</color>
 </resources>

@@ -1,12 +1,17 @@
 package com.sysmonwidget.app
 
+import android.graphics.Color
 import android.graphics.Typeface
 import android.text.SpannableString
 import android.text.Spanned
+import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
 import org.json.JSONObject
 
 object StatsFormat {
+
+    private val LABEL_COLOR = Color.parseColor("#00F0FF")
+    private val VALUE_COLOR = Color.parseColor("#1DE9B6")
 
     const val KEY_RAM = "ram"
     const val KEY_STORAGE = "storage"
@@ -18,7 +23,11 @@ object StatsFormat {
 
     fun boldLabel(label: String, value: String): SpannableString {
         val spannable = SpannableString(label + value)
-        spannable.setSpan(StyleSpan(Typeface.BOLD), 0, label.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        val labelEnd = label.length
+        val totalEnd = spannable.length
+        spannable.setSpan(StyleSpan(Typeface.BOLD), 0, labelEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        spannable.setSpan(ForegroundColorSpan(LABEL_COLOR), 0, labelEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        spannable.setSpan(ForegroundColorSpan(VALUE_COLOR), labelEnd, totalEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         return spannable
     }
 

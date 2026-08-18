@@ -81,11 +81,14 @@ class SysMonWidgetProvider : AppWidgetProvider() {
         val device = resolveDevice(context, prefs, id)
         if (device == null) {
             views.setTextViewText(R.id.titleText, context.getString(R.string.widget_no_device))
+            views.setTextViewText(R.id.ipText, "")
             views.setTextViewText(R.id.updatedText, "")
             manager.updateAppWidget(id, views)
             manager.notifyAppWidgetViewDataChanged(id, R.id.statsList)
             return
         }
+
+        views.setTextViewText(R.id.ipText, ipOnly(device.address))
 
         val json = StatsClient.fetchStats(device.address)
         if (json != null) {
@@ -134,4 +137,6 @@ class SysMonWidgetProvider : AppWidgetProvider() {
 
     private fun timeString(millis: Long): String =
         SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(millis))
+
+    private fun ipOnly(address: String): String = address.substringBefore(":")
 }

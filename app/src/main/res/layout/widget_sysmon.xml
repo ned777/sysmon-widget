@@ -4,23 +4,44 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/widget_bg"
+    android:background="@drawable/widget_background"
     android:paddingTop="16dp"
     android:paddingBottom="16dp"
     android:paddingStart="16dp"
     android:paddingEnd="16dp">
 
-    <TextView
-        android:id="@+id/titleText"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="@color/white"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:gravity="center"
-        android:singleLine="true"
-        android:ellipsize="end"
-        android:text="--" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/titleText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="@color/retro_cyan"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textAllCaps="true"
+            android:letterSpacing="0.08"
+            android:gravity="center"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:text="--" />
+
+        <TextView
+            android:id="@+id/ipText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:textColor="@color/retro_pink"
+            android:textSize="11sp"
+            android:singleLine="true"
+            android:text="" />
+
+    </LinearLayout>
 
     <ListView
         android:id="@+id/statsList"
@@ -36,7 +57,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
-        android:textColor="@color/widget_text_secondary"
+        android:textColor="@color/retro_pink"
         android:textSize="11sp"
         android:gravity="center"
         android:text="" />
