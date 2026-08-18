@@ -61,6 +61,7 @@ class SysMonWidgetProvider : AppWidgetProvider() {
             editor.remove("widget_${id}_last_stats_json")
             editor.remove("widget_${id}_last_stats_time")
             editor.remove("widget_${id}_reachable")
+            editor.remove("widget_${id}_stats")
         }
         editor.apply()
     }

@@ -29,9 +29,15 @@ class StatsRemoteViewsFactory(
         val prefs = context.getSharedPreferences("sysmon", Context.MODE_PRIVATE)
         val cached = prefs.getString("widget_${appWidgetId}_last_stats_json", null)
         val reachable = prefs.getBoolean("widget_${appWidgetId}_reachable", true)
+        val statsPref = prefs.getString("widget_${appWidgetId}_stats", null)
+        val enabledStats = if (statsPref.isNullOrBlank()) {
+            StatsFormat.ALL_KEYS.toSet()
+        } else {
+            statsPref.split(",").toSet()
+        }
         rows = if (cached != null) {
             try {
-                StatsFormat.buildStatRows(JSONObject(cached), reachable)
+                StatsFormat.buildStatRows(JSONObject(cached), reachable, enabledStats)
             } catch (e: Exception) {
                 emptyList()
             }

@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.ListView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -46,6 +47,26 @@ class WidgetConfigActivity : AppCompatActivity() {
             getSharedPreferences("sysmon", MODE_PRIVATE)
                 .edit()
                 .putString("widget_${appWidgetId}_device_id", device.id)
+                .apply()
+            showStatsStep()
+        }
+    }
+
+    private fun showStatsStep() {
+        findViewById<View>(R.id.deviceStepGroup).visibility = View.GONE
+        findViewById<View>(R.id.statsStepGroup).visibility = View.VISIBLE
+
+        findViewById<Button>(R.id.doneConfigButton).setOnClickListener {
+            val enabled = mutableListOf<String>()
+            if (findViewById<CheckBox>(R.id.checkRam).isChecked) enabled.add(StatsFormat.KEY_RAM)
+            if (findViewById<CheckBox>(R.id.checkStorage).isChecked) enabled.add(StatsFormat.KEY_STORAGE)
+            if (findViewById<CheckBox>(R.id.checkClaudeDaily).isChecked) enabled.add(StatsFormat.KEY_CLAUDE_DAILY)
+            if (findViewById<CheckBox>(R.id.checkClaudeWeekly).isChecked) enabled.add(StatsFormat.KEY_CLAUDE_WEEKLY)
+            if (findViewById<CheckBox>(R.id.checkStatus).isChecked) enabled.add(StatsFormat.KEY_STATUS)
+
+            getSharedPreferences("sysmon", MODE_PRIVATE)
+                .edit()
+                .putString("widget_${appWidgetId}_stats", enabled.joinToString(","))
                 .apply()
 
             val resultValue = Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)

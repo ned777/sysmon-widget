@@ -9,6 +9,13 @@
     <string name="save">Save</string>
     <string name="choose_device">Choose a device</string>
     <string name="no_devices_config">No devices yet. Add one in the app, then try adding the widget again.</string>
+    <string name="choose_stats">Choose what to show</string>
+    <string name="stat_ram">RAM</string>
+    <string name="stat_storage">Storage</string>
+    <string name="stat_claude_daily">Claude (Daily)</string>
+    <string name="stat_claude_weekly">Claude (Weekly)</string>
+    <string name="stat_status">Status</string>
+    <string name="done">Done</string>
     <string name="widget_unreachable">Unreachable</string>
     <string name="widget_no_device">No device — open app to add one</string>
 </resources>

@@ -2,38 +2,106 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="24dp">
+    android:orientation="vertical">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/choose_device"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="12dp" />
-
-    <ListView
-        android:id="@+id/configDeviceListView"
+    <LinearLayout
+        android:id="@+id/deviceStepGroup"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="24dp">
 
-    <TextView
-        android:id="@+id/configEmptyText"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:gravity="center"
-        android:text="@string/no_devices_config"
-        android:visibility="gone" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/choose_device"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp" />
 
-    <Button
-        android:id="@+id/configAddDeviceButton"
+        <ListView
+            android:id="@+id/configDeviceListView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/configEmptyText"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="@string/no_devices_config"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/configAddDeviceButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/add_device"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/statsStepGroup"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:text="@string/add_device"
-        android:visibility="gone" />
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/choose_stats"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp" />
+
+        <CheckBox
+            android:id="@+id/checkRam"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/stat_ram"
+            android:checked="true" />
+
+        <CheckBox
+            android:id="@+id/checkStorage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/stat_storage"
+            android:checked="true" />
+
+        <CheckBox
+            android:id="@+id/checkClaudeDaily"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/stat_claude_daily"
+            android:checked="true" />
+
+        <CheckBox
+            android:id="@+id/checkClaudeWeekly"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/stat_claude_weekly"
+            android:checked="true" />
+
+        <CheckBox
+            android:id="@+id/checkStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/stat_status"
+            android:checked="true" />
+
+        <Button
+            android:id="@+id/doneConfigButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="@string/done" />
+
+    </LinearLayout>
 
 </LinearLayout>
