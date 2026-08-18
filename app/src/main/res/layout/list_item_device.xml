@@ -33,7 +33,7 @@
             android:layout_height="wrap_content"
             android:textStyle="bold"
             android:textSize="16sp"
-            android:textColor="@color/retro_yellow"
+            android:textColor="@color/retro_purple"
             android:text="--" />
 
         <!-- Set in code via view.findViewById<TextView>(R.id.deviceAddressText).text = device.address -->
@@ -42,7 +42,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="13sp"
-            android:textColor="@color/retro_cyan"
+            android:textColor="@color/retro_blue"
             android:text="--" />
     </LinearLayout>
 

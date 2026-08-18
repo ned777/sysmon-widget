@@ -30,7 +30,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/app_subtitle"
-        android:textColor="@color/retro_teal"
+        android:textColor="@color/retro_blue"
         android:textSize="13sp"
         android:textStyle="italic"
         android:layout_marginBottom="20dp" />
@@ -39,7 +39,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/devices_header"
-        android:textColor="@color/retro_teal"
+        android:textColor="@color/retro_blue"
         android:textSize="18sp"
         android:textStyle="bold"
         android:layout_marginBottom="8dp" />

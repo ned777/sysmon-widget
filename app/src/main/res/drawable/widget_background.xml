@@ -2,18 +2,18 @@
 <!--
   A "shape drawable" — a background image built from simple geometric
   instructions instead of a bitmap file. This one draws the widget's black
-  fill with a 3dp yellow border and rounded corners, and is applied as
-  android:background="@drawable/widget_background" on the widget's root
+  fill with a 3dp electric-purple border and rounded corners, and is applied
+  as android:background="@drawable/widget_background" on the widget's root
   LinearLayout in widget_sysmon.xml.
 -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
     <!-- The fill color inside the border. -->
     <solid android:color="@color/widget_bg" />
-    <!-- The border itself: 3dp thick, bright yellow. -->
+    <!-- The border itself: 3dp thick, electric purple. -->
     <stroke
         android:width="3dp"
-        android:color="@color/retro_yellow" />
+        android:color="@color/retro_purple" />
     <!-- See values-v31/dimens.xml for why this isn't just a fixed number. -->
     <corners android:radius="@dimen/widget_corner_radius" />
 </shape>

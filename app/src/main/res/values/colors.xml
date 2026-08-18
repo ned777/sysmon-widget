@@ -21,11 +21,11 @@
 
     <!--
       80s / synthwave palette, used consistently across both the home-screen
-      widget and the app's own screens: pink for titles, yellow for device
-      names, cyan for labels/addresses, teal for everything else.
+      widget and the app's own screens: hot pink for titles/status text,
+      electric purple for device names/labels/the widget border, and neon
+      blue for addresses/values/everything else.
     -->
-    <color name="retro_yellow">#FFE600</color>
-    <color name="retro_cyan">#00F0FF</color>
-    <color name="retro_teal">#1DE9B6</color>
     <color name="retro_pink">#FF2E97</color>
+    <color name="retro_purple">#9D4EDD</color>
+    <color name="retro_blue">#3A86FF</color>
 </resources>

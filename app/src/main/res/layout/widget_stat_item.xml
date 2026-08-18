@@ -3,8 +3,8 @@
   One row inside the widget's scrolling stats list — "inflated" once per row by
   StatsRemoteViewsFactory.getViewAt() in SysMonRemoteViewsService.kt. The actual
   text (a styled SpannableString built by StatsFormat.boldLabel(), with the
-  label part cyan+bold and the value part teal) is set in code — this XML just
-  declares the single TextView and its default look.
+  label part purple+bold and the value part blue) is set in code — this XML
+  just declares the single TextView and its default look.
 -->
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/statText"
@@ -12,6 +12,6 @@
     android:layout_height="wrap_content"
     android:paddingTop="3dp"
     android:paddingBottom="3dp"
-    android:textColor="@color/retro_teal"
+    android:textColor="@color/retro_blue"
     android:textSize="14sp"
     android:text="--" />
