@@ -15,10 +15,11 @@
     android:orientation="vertical"
     android:padding="24dp">
     <!--
-      No explicit android:background here on purpose — the sunset-gradient-
-      plus-grid look comes from android:windowBackground in themes.xml, so
-      every screen using Theme.SysMonWidget gets it automatically instead of
-      each layout repeating it.
+      No explicit android:background here on purpose — plain black comes from
+      android:windowBackground in themes.xml, so every screen using
+      Theme.SysMonWidget gets it automatically instead of each layout
+      repeating it. The sunset-gradient-plus-grid look is reserved for the
+      home-screen widget only (see drawable/widget_background.xml).
     -->
 
     <!--

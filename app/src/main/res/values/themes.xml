@@ -22,11 +22,11 @@
         <item name="colorAccent">@color/retro_cyan</item>
         <!--
           android:windowBackground is the default fill behind EVERY screen using
-          this theme — pointing it at the sunset-gradient-plus-grid drawable
-          (rather than a plain color) means every Activity gets the retro look
-          automatically, with no per-layout android:background needed.
+          this theme. Plain black on purpose — the sunset-gradient-plus-grid
+          look is reserved for the home-screen widget only (see
+          drawable/widget_background.xml); the app's own screens stay simple.
         -->
-        <item name="android:windowBackground">@drawable/app_background</item>
+        <item name="android:windowBackground">@color/black</item>
         <!-- Default text color for most TextViews that don't set their own android:textColor. -->
         <item name="android:textColorPrimary">@color/retro_white</item>
         <item name="android:textColorSecondary">@color/retro_white</item>
