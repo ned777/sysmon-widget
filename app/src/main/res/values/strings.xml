@@ -4,6 +4,7 @@
     <string name="app_subtitle">Created by Ned Nguyen</string>
     <string name="devices_header">Devices</string>
     <string name="add_device">Add device</string>
+    <string name="edit_device">Edit device</string>
     <string name="device_name_hint">e.g. Home PC</string>
     <string name="device_address_hint">192.168.1.50:8765</string>
     <string name="device_fields_required">Enter a name and address</string>

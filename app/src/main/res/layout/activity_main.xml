@@ -3,12 +3,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="@color/black"
     android:padding="24dp">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/app_title"
+        android:textColor="@color/retro_pink"
         android:textSize="22sp"
         android:textStyle="bold"
         android:layout_marginBottom="4dp" />
@@ -17,6 +19,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/app_subtitle"
+        android:textColor="@color/retro_teal"
         android:textSize="13sp"
         android:textStyle="italic"
         android:layout_marginBottom="20dp" />
@@ -25,6 +28,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/devices_header"
+        android:textColor="@color/retro_teal"
         android:textSize="18sp"
         android:textStyle="bold"
         android:layout_marginBottom="8dp" />

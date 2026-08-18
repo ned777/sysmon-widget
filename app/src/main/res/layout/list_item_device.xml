@@ -18,6 +18,7 @@
             android:layout_height="wrap_content"
             android:textStyle="bold"
             android:textSize="16sp"
+            android:textColor="@color/retro_yellow"
             android:text="--" />
 
         <TextView
@@ -25,14 +26,21 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="13sp"
-            android:textColor="@color/widget_text_secondary"
+            android:textColor="@color/retro_cyan"
             android:text="--" />
     </LinearLayout>
+
+    <Button
+        android:id="@+id/editButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="✎" />
 
     <Button
         android:id="@+id/deleteButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
         android:text="✕" />
 
 </LinearLayout>

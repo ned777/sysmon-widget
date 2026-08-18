@@ -47,6 +47,13 @@ object DeviceStore {
         saveDevices(context, loadDevices(context).filterNot { it.id == id })
     }
 
+    fun updateDevice(context: Context, id: String, name: String, address: String) {
+        saveDevices(
+            context,
+            loadDevices(context).map { if (it.id == id) it.copy(name = name, address = address) else it }
+        )
+    }
+
     fun findDevice(context: Context, id: String): Device? =
         loadDevices(context).firstOrNull { it.id == id }
 }

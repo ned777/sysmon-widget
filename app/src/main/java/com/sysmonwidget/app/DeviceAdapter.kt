@@ -11,7 +11,8 @@ class DeviceAdapter(
     private val context: Context,
     private var devices: List<Device>,
     private val showDelete: Boolean,
-    private val onDelete: ((Device) -> Unit)? = null
+    private val onDelete: ((Device) -> Unit)? = null,
+    private val onEdit: ((Device) -> Unit)? = null
 ) : BaseAdapter() {
 
     fun updateDevices(newDevices: List<Device>) {
@@ -36,6 +37,14 @@ class DeviceAdapter(
             deleteButton.setOnClickListener { onDelete?.invoke(device) }
         } else {
             deleteButton.visibility = View.GONE
+        }
+
+        val editButton = view.findViewById<View>(R.id.editButton)
+        if (onEdit != null) {
+            editButton.visibility = View.VISIBLE
+            editButton.setOnClickListener { onEdit.invoke(device) }
+        } else {
+            editButton.visibility = View.GONE
         }
         return view
     }
