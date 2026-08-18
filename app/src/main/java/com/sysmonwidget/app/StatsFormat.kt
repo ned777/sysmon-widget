@@ -159,13 +159,28 @@ object StatsFormat {
         return builder
     }
 
-    private fun ramRow(ram: JSONObject): SpannableString {
-        // The agent reports RAM in megabytes; dividing by 1024.0 (a Double,
-        // note the decimal point) converts it to gigabytes with fractional
-        // precision, which "%.0f" below then rounds to a whole number to show.
-        val ramUsedGb = ram.getInt("used_mb") / 1024.0
-        val ramTotalGb = ram.getInt("total_mb") / 1024.0
-        return boldLabel("RAM: ", "%.0fGB out of %.0fGB".format(ramUsedGb, ramTotalGb))
+    private fun ramRow(ram: JSONObject): SpannableString =
+        boldLabel("RAM: ", memoryRange(ram.getInt("used_mb"), ram.getInt("total_mb")))
+
+    /**
+     * Picks the biggest unit (GB, then MB, then KB) that still shows the USED
+     * amount as a non-zero whole number, and shows BOTH numbers in that same
+     * unit. Without this, a lightly-loaded device (say, 150MB used out of
+     * 4096MB total) would round down to a confusing "0GB out of 4GB" — this
+     * steps down a tier at a time until the used side actually reads as
+     * something. Falling all the way through to KB is extremely unlikely in
+     * practice (it would mean under 1MB used, which real systems don't do),
+     * but handles it cleanly rather than ever showing a bare "0".
+     */
+    private fun memoryRange(usedMb: Int, totalMb: Int): String {
+        val usedGb = Math.round(usedMb / 1024.0)
+        if (usedGb > 0) {
+            return "%dGB out of %dGB".format(usedGb, Math.round(totalMb / 1024.0))
+        }
+        if (usedMb > 0) {
+            return "${usedMb}MB out of ${totalMb}MB"
+        }
+        return "${usedMb * 1024}KB out of ${totalMb * 1024}KB"
     }
 
     private fun storageRow(storage: JSONObject): SpannableString =
