@@ -58,6 +58,8 @@ class MainActivity : AppCompatActivity() {
             showDelete = true,
             onDelete = { device ->
                 DeviceStore.removeDevice(this, device.id)
+                DeviceStatsCache.clear(this, device.id)
+                deviceStats.remove(device.id)
                 adapter.updateDevices(DeviceStore.loadDevices(this))
                 // Any home-screen widgets pointing at devices need to know the
                 // device list changed too, in case the deleted device was in use.
@@ -85,28 +87,45 @@ class MainActivity : AppCompatActivity() {
      */
     override fun onResume() {
         super.onResume()
-        adapter.updateDevices(DeviceStore.loadDevices(this))
-        refreshDeviceStats()
+        val devices = DeviceStore.loadDevices(this)
+        adapter.updateDevices(devices)
+
+        // Show whatever's already cached immediately — including data the
+        // WIDGET fetched moments ago, since both now read/write the same
+        // DeviceStatsCache — instead of blanking every row to "Loading
+        // stats…" while we wait on a fresh fetch below.
+        devices.forEach { device ->
+            val cached = DeviceStatsCache.read(this, device.id)
+            if (cached.json != null) {
+                deviceStats[device.id] = StatsFormat.joinRows(StatsFormat.buildAllStatRows(cached.json, cached.reachable))
+            }
+        }
+        adapter.notifyDataSetChanged()
+
+        refreshDeviceStats(devices)
     }
 
     /**
      * Kicks off a live stats fetch for every registered device, in the
      * background, and updates the list as each one finishes. Unlike the
      * widget (which only fetches for devices it's actually configured to
-     * watch, and caches the result to disk), the app fetches for every device
-     * every time this screen becomes visible, since its whole purpose here is
-     * showing "everything, right now" — see StatsFormat.buildAllStatRows().
+     * watch), the app fetches for every device every time this screen
+     * becomes visible, since its whole purpose here is showing "everything,
+     * right now" — see StatsFormat.buildAllStatRows(). Every fetch goes
+     * through DeviceStatsCache (the same one the widget uses), so whichever
+     * of the app or a widget fetches most recently is what both end up
+     * showing — there's no separate, independently-fetched copy anymore.
      */
-    private fun refreshDeviceStats() {
-        DeviceStore.loadDevices(this).forEach { device ->
+    private fun refreshDeviceStats(devices: List<Device>) {
+        devices.forEach { device ->
             // Each device gets its own background Thread so a slow/offline
-            // device doesn't hold up the others — StatsClient.fetchStats()
+            // device doesn't hold up the others — DeviceStatsCache.fetch()
             // blocks for up to a few seconds, which would freeze the whole
             // screen if run directly on the main thread here.
             Thread {
-                val json = StatsClient.fetchStats(device.address)
-                val text = if (json != null) {
-                    StatsFormat.joinRows(StatsFormat.buildAllStatRows(json, reachable = true))
+                val result = DeviceStatsCache.fetch(this, device)
+                val text = if (result.json != null) {
+                    StatsFormat.joinRows(StatsFormat.buildAllStatRows(result.json, result.reachable))
                 } else {
                     StatsFormat.boldLabel("Status: ", "Offline")
                 }

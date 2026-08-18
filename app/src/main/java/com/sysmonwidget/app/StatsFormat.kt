@@ -95,12 +95,12 @@ object StatsFormat {
 
         if (KEY_CLAUDE_DAILY in enabledStats) {
             val claude = json.getJSONObject("claude")
-            rows.add(boldLabel("Claude (Daily): ", tokenSummary(claude.getJSONObject("tokens_daily"))))
+            claudeRow("Claude (Daily): ", claude.getJSONObject("tokens_daily"))?.let { rows.add(it) }
         }
 
         if (KEY_CLAUDE_WEEKLY in enabledStats) {
             val claude = json.getJSONObject("claude")
-            rows.add(boldLabel("Claude (Weekly): ", tokenSummary(claude.getJSONObject("tokens_weekly"))))
+            claudeRow("Claude (Weekly): ", claude.getJSONObject("tokens_weekly"))?.let { rows.add(it) }
         }
 
         if (KEY_STATUS in enabledStats) {
@@ -129,10 +129,10 @@ object StatsFormat {
         if (json.has("claude")) {
             val claude = json.getJSONObject("claude")
             if (claude.has("tokens_daily")) {
-                rows.add(boldLabel("Claude (Daily): ", tokenSummary(claude.getJSONObject("tokens_daily"))))
+                claudeRow("Claude (Daily): ", claude.getJSONObject("tokens_daily"))?.let { rows.add(it) }
             }
             if (claude.has("tokens_weekly")) {
-                rows.add(boldLabel("Claude (Weekly): ", tokenSummary(claude.getJSONObject("tokens_weekly"))))
+                claudeRow("Claude (Weekly): ", claude.getJSONObject("tokens_weekly"))?.let { rows.add(it) }
             }
         }
 
@@ -190,18 +190,24 @@ object StatsFormat {
         )
 
     /**
-     * Builds the "1.2M in / 340K out" part of a Claude usage row.
-     * `private` means this helper is only usable inside StatsFormat itself — it's
-     * an implementation detail other files never need to call directly.
+     * Builds one Claude usage row ("Claude (Daily): 1.2M in / 340K out") — or
+     * returns null to mean "don't show this row at all" when there's simply
+     * nothing to report. The agent ALWAYS includes a "claude" section with
+     * this same shape, even on a device that's never run Claude Code — it
+     * just comes back as all zeros rather than being left out entirely. So
+     * checking `json.has("claude")` alone (as buildAllStatRows briefly did)
+     * never actually catches that case; checking whether the numbers
+     * themselves are zero is what actually hides the row.
      */
-    private fun tokenSummary(tokens: JSONObject): String {
+    private fun claudeRow(label: String, tokens: JSONObject): CharSequence? {
         // Cache-read tokens are billed like regular input tokens, so we fold them
         // into the "in" total rather than showing a confusing third number.
         // optLong(key, default) is like getLong but returns a default (0) instead
         // of crashing if that key happens to be missing from the JSON.
         val inTok = tokens.getLong("input") + tokens.optLong("cache_read", 0)
         val outTok = tokens.getLong("output")
-        return "${formatTokens(inTok)} in / ${formatTokens(outTok)} out"
+        if (inTok == 0L && outTok == 0L) return null
+        return boldLabel(label, "${formatTokens(inTok)} in / ${formatTokens(outTok)} out")
     }
 
     /**

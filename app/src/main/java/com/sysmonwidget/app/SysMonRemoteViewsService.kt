@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
-import org.json.JSONObject
 
 /**
  * Normal Views (Buttons, TextViews, ListViews...) live inside YOUR app's process.
@@ -67,11 +66,11 @@ class StatsRemoteViewsFactory(
     override fun onDataSetChanged() {
         val prefs = context.getSharedPreferences("sysmon", Context.MODE_PRIVATE)
 
-        // SysMonWidgetProvider is the one that actually talks to the device over
-        // the network and saves the result here — this factory just reads
-        // whatever was saved most recently, it never makes network calls itself.
-        val cached = prefs.getString("widget_${appWidgetId}_last_stats_json", null)
-        val reachable = prefs.getBoolean("widget_${appWidgetId}_reachable", true)
+        // Which device this specific widget instance watches (same key
+        // SysMonWidgetProvider.resolveDevice() reads) — we need this to look
+        // up the right entry in DeviceStatsCache, since stats are now cached
+        // per DEVICE, not per widget.
+        val deviceId = prefs.getString("widget_${appWidgetId}_device_id", null)
         val statsPref = prefs.getString("widget_${appWidgetId}_stats", null)
 
         // If the user never customized which stats to show for this widget,
@@ -82,9 +81,15 @@ class StatsRemoteViewsFactory(
             statsPref.split(",").toSet()
         }
 
-        rows = if (cached != null) {
+        // SysMonWidgetProvider (or the app) is what actually talks to the
+        // device over the network and writes the shared cache — this factory
+        // only ever reads it, never makes a network call itself.
+        val cached = deviceId?.let { DeviceStatsCache.read(context, it) }
+        val json = cached?.json
+
+        rows = if (json != null) {
             try {
-                StatsFormat.buildStatRows(JSONObject(cached), reachable, enabledStats)
+                StatsFormat.buildStatRows(json, cached.reachable, enabledStats)
             } catch (e: Exception) {
                 // If the saved JSON is ever malformed (shouldn't normally happen,
                 // but better safe than crashing the whole home screen), just show

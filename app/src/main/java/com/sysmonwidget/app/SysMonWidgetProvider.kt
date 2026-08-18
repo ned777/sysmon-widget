@@ -121,16 +121,16 @@ class SysMonWidgetProvider : AppWidgetProvider() {
      * Called when one or more widget instances are removed from the home screen.
      * We clean up the SharedPreferences entries we were keeping just for those
      * widget ids, so we don't slowly accumulate stale data forever for widgets
-     * that no longer exist.
+     * that no longer exist. Note this only clears WIDGET-scoped keys (which
+     * device this widget watched, which stats it showed) — the actual fetched
+     * stats live in DeviceStatsCache, keyed by device id, and are left alone
+     * since the app (or another widget) may still be using that same device.
      */
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val editor = prefs.edit()
         appWidgetIds.forEach { id ->
             editor.remove("widget_${id}_device_id")
-            editor.remove("widget_${id}_last_stats_json")
-            editor.remove("widget_${id}_last_stats_time")
-            editor.remove("widget_${id}_reachable")
             editor.remove("widget_${id}_stats")
         }
         editor.apply()
@@ -193,46 +193,36 @@ class SysMonWidgetProvider : AppWidgetProvider() {
         // useful to see even while offline.
         views.setTextViewText(R.id.ipText, ipOnly(device.address))
 
-        // The actual network call — see StatsClient.kt. This blocks the current
-        // thread for up to a few seconds, which is fine because updateOneWidget
-        // is always called from the background Thread started in onUpdate() /
-        // onReceive() above, never from the main thread.
-        val json = StatsClient.fetchStats(device.address)
-        if (json != null) {
-            // Success: remember these stats (and the time we got them) so that if
-            // the device goes offline later, we can still show "last known"
-            // numbers instead of nothing at all.
-            prefs.edit()
-                .putString("widget_${id}_last_stats_json", json.toString())
-                .putLong("widget_${id}_last_stats_time", System.currentTimeMillis())
-                .putBoolean("widget_${id}_reachable", true)
-                .apply()
+        // The actual network call — see DeviceStatsCache.kt / StatsClient.kt.
+        // This blocks the current thread for up to a few seconds, which is
+        // fine because updateOneWidget is always called from the background
+        // Thread started in onUpdate() / onReceive() above, never from the
+        // main thread. Routing through DeviceStatsCache (keyed by device id,
+        // not by this specific widget) is what keeps the app and every widget
+        // pointed at the same device looking at the exact same fetched data,
+        // instead of each independently polling and caching on its own.
+        val result = DeviceStatsCache.fetch(context, device)
+        if (result.reachable) {
             views.setTextViewText(R.id.titleText, device.name)
-            views.setTextViewText(R.id.updatedText, "Updated ${timeString(System.currentTimeMillis())}")
+            views.setTextViewText(R.id.updatedText, "Updated ${timeString(result.fetchedAt)}")
+        } else if (result.json != null) {
+            // We have stale-but-real numbers to show — the stats list itself
+            // will keep displaying them (StatsRemoteViewsFactory reads from
+            // the same DeviceStatsCache), we just need to say clearly that
+            // they're old.
+            views.setTextViewText(R.id.titleText, device.name)
+            views.setTextViewText(
+                R.id.updatedText,
+                "${context.getString(R.string.widget_unreachable)} — last ${timeString(result.fetchedAt)}"
+            )
         } else {
-            // Failure: mark the device unreachable, but try to fall back to
-            // whatever we last successfully fetched rather than showing nothing.
-            prefs.edit().putBoolean("widget_${id}_reachable", false).apply()
-            val cached = prefs.getString("widget_${id}_last_stats_json", null)
-            val lastTime = prefs.getLong("widget_${id}_last_stats_time", 0L)
-            if (cached != null) {
-                // We have stale-but-real numbers to show — the stats list itself
-                // will keep displaying them (StatsRemoteViewsFactory reads this
-                // same cached JSON), we just need to say clearly that they're old.
-                views.setTextViewText(R.id.titleText, device.name)
-                views.setTextViewText(
-                    R.id.updatedText,
-                    "${context.getString(R.string.widget_unreachable)} — last ${timeString(lastTime)}"
-                )
-            } else {
-                // We've NEVER successfully reached this device — nothing to fall
-                // back to, so say so plainly in the title itself.
-                views.setTextViewText(
-                    R.id.titleText,
-                    "${device.name} — ${context.getString(R.string.widget_unreachable)}"
-                )
-                views.setTextViewText(R.id.updatedText, "")
-            }
+            // We've NEVER successfully reached this device — nothing to fall
+            // back to, so say so plainly in the title itself.
+            views.setTextViewText(
+                R.id.titleText,
+                "${device.name} — ${context.getString(R.string.widget_unreachable)}"
+            )
+            views.setTextViewText(R.id.updatedText, "")
         }
 
         // Hand the finished RemoteViews to Android, which forwards it to the
