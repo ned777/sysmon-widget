@@ -21,27 +21,27 @@
     <color name="widget_text_secondary">#B0BEC5</color>
 
     <!--
-      Synthwave "sunset over a grid" palette — a moody, DARK gradient (night
-      sky fading into a barely-lit dusk horizon) with neon cyan/magenta/orange
-      accents on top, used consistently across both the home-screen widget and
-      the app's own screens. Kept deliberately low-brightness throughout —
-      this is background art, not something that should compete with text —
-      combined with the scrim color below for guaranteed contrast.
+      Synthwave "sunset over a grid" palette — a moody, dark gradient (night
+      sky fading into a dimly-lit dusk horizon) with neon cyan/magenta/orange
+      accents on top, used on the home-screen widget's background (see
+      drawable/widget_background.xml). Kept deliberately low-brightness — this
+      is background art, not something that should compete with the widget's
+      text — combined with the scrim color below for guaranteed contrast.
     -->
-    <color name="sunset_top">#140A24</color>
-    <color name="sunset_mid">#4A184F</color>
-    <color name="sunset_bottom">#5C2410</color>
+    <color name="sunset_top">#1C0F30</color>
+    <color name="sunset_mid">#5C1F62</color>
+    <color name="sunset_bottom">#7A3015</color>
 
     <!--
       A translucent near-black layer painted OVER the gradient+grid, UNDER the
-      text (see drawable/widget_background.xml / app_background.xml). This is
-      what actually guarantees text stays readable: no matter how the gradient
-      or grid lines happen to fall behind a given piece of text, this scrim
-      darkens everything underneath it by a fixed, predictable amount first.
-      #8C is roughly 55% opacity — enough to guarantee contrast without
-      hiding the gradient/grid underneath it entirely.
+      text (see drawable/widget_background.xml). This is what actually
+      guarantees text stays readable: no matter how the gradient or grid lines
+      happen to fall behind a given piece of text, this scrim darkens
+      everything underneath it by a fixed, predictable amount first. #73 is
+      roughly 45% opacity — enough to guarantee contrast without hiding the
+      gradient/grid underneath it entirely.
     -->
-    <color name="retro_scrim">#8C000000</color>
+    <color name="retro_scrim">#73000000</color>
 
     <color name="retro_cyan">#00E5FF</color>
     <color name="retro_magenta">#FF4FA3</color>
