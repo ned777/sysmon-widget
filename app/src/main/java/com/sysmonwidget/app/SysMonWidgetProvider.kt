@@ -119,21 +119,9 @@ class SysMonWidgetProvider : AppWidgetProvider() {
         manager.notifyAppWidgetViewDataChanged(id, R.id.statsList)
     }
 
-    /** Resolves the device assigned to this widget instance, migrating the old
-     *  single-global-address setting (pre-multi-device) into a device the first
-     *  time an un-migrated widget is updated. */
     private fun resolveDevice(context: Context, prefs: SharedPreferences, id: Int): Device? {
-        val deviceId = prefs.getString("widget_${id}_device_id", null)
-        if (deviceId != null) {
-            return DeviceStore.findDevice(context, deviceId)
-        }
-        val legacyAddress = prefs.getString("server_address", null)
-        if (!legacyAddress.isNullOrBlank()) {
-            val device = DeviceStore.addDevice(context, "This computer", legacyAddress)
-            prefs.edit().putString("widget_${id}_device_id", device.id).apply()
-            return device
-        }
-        return null
+        val deviceId = prefs.getString("widget_${id}_device_id", null) ?: return null
+        return DeviceStore.findDevice(context, deviceId)
     }
 
     private fun attachListAdapter(context: Context, views: RemoteViews, id: Int) {
