@@ -2,10 +2,11 @@
 <!--
   The widget's full background, applied as android:background on the widget's
   root LinearLayout in widget_sysmon.xml. A <layer-list> stacks several
-  drawables on top of each other, bottom item first — here that's three
-  layers: the dark sunset gradient, the glowing grid/horizon artwork on top of
-  it, and finally a thin neon border drawn as its own layer so its stroke
-  stays crisp regardless of what's happening underneath.
+  drawables on top of each other, bottom item first — here that's four
+  layers: the dark sunset gradient, the faint grid/horizon artwork over it, a
+  dark translucent scrim over THAT (so the text drawn on top always has
+  guaranteed contrast, no matter what color happens to be behind it), and
+  finally a thin neon border on top of everything so its stroke stays crisp.
 -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
 
@@ -28,10 +29,23 @@
         </shape>
     </item>
 
-    <!-- Layer 2: the grid/horizon/sun artwork, drawn over the gradient. -->
+    <!-- Layer 2: the faint grid/horizon artwork, drawn over the gradient. -->
     <item android:drawable="@drawable/retro_grid_overlay" />
 
-    <!-- Layer 3: a crisp neon cyan outline on top of everything else. -->
+    <!--
+      Layer 3: the contrast scrim — a ~70%-opaque near-black rectangle. This
+      is what actually fixes text readability: everything below this line
+      only needs to look good as background texture, because this scrim
+      uniformly darkens it before any text ever gets drawn on top.
+    -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/retro_scrim" />
+            <corners android:radius="@dimen/widget_corner_radius" />
+        </shape>
+    </item>
+
+    <!-- Layer 4: a crisp neon cyan outline on top of everything else. -->
     <item>
         <shape android:shape="rectangle">
             <stroke
