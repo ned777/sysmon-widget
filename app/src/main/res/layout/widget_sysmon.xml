@@ -1,4 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  This is the widget's OWN layout — what actually gets drawn on the home screen.
+  It's referenced from two places: sysmon_widget_info.xml's
+  android:initialLayout, and directly by name in
+  SysMonWidgetProvider.updateOneWidget() via RemoteViews(context.packageName,
+  R.layout.widget_sysmon).
+
+  IMPORTANT: widget layouts can ONLY use a small whitelist of View types that
+  Android's RemoteViews system knows how to recreate inside the separate
+  launcher process — things like LinearLayout, TextView, ListView, ImageView,
+  Button. You can't drop in arbitrary custom Views the way you can in a normal
+  Activity layout.
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widgetRoot"
     android:layout_width="match_parent"
@@ -10,6 +23,12 @@
     android:paddingStart="16dp"
     android:paddingEnd="16dp">
 
+    <!--
+      Title row: the device name on the left (growing to fill available space,
+      centered within it) and the device's IP address on the right in pink.
+      Both TextViews' actual text are set in code, per-widget, inside
+      SysMonWidgetProvider.updateOneWidget() via views.setTextViewText(...).
+    -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -43,6 +62,15 @@
 
     </LinearLayout>
 
+    <!--
+      The scrollable stats list. Unlike a normal ListView in an Activity, this
+      one gets its rows from a RemoteViewsService (SysMonRemoteViewsService.kt)
+      instead of a plain in-process Adapter — see
+      SysMonWidgetProvider.attachListAdapter() for how the two get connected.
+      layout_height="0dp" + layout_weight="1" again means "fill whatever space
+      is left over" after the title row above and the timestamp row below take
+      what they need.
+    -->
     <ListView
         android:id="@+id/statsList"
         android:layout_width="match_parent"
@@ -52,6 +80,11 @@
         android:divider="@null"
         android:scrollbars="none" />
 
+    <!--
+      Small status line at the bottom: either "Updated HH:mm" on a successful
+      refresh, or "Unreachable — last HH:mm" if the device couldn't be reached.
+      Text set in code by SysMonWidgetProvider.updateOneWidget().
+    -->
     <TextView
         android:id="@+id/updatedText"
         android:layout_width="match_parent"

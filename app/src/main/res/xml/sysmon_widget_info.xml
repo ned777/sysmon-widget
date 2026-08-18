@@ -1,4 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  This is the widget's "metadata card" — it never draws anything itself, it just
+  tells Android (and the launcher's widget picker) facts about the widget: how
+  big it can be, how often to refresh it automatically, and which layout/Activity
+  to use. It's linked to our AppWidgetProvider (SysMonWidgetProvider.kt) via the
+  <meta-data android:resource="@xml/sysmon_widget_info" /> line inside that
+  receiver's declaration in AndroidManifest.xml.
+
+  Field-by-field, in plain English:
+
+  minWidth / minHeight        — smallest size the widget can be placed at.
+  minResizeWidth/Height       — smallest size the USER can resize it down to
+                                 after placing it (can be smaller than the
+                                 initial min size).
+  targetCellWidth/Height      — on newer launchers that use a home-screen grid,
+                                 this hints "aim for roughly 3 columns by 2 rows"
+                                 as the natural default size.
+  updatePeriodMillis="0"      — 0 means "don't auto-refresh on a timer at all".
+                                 We deliberately handle refreshing ourselves,
+                                 only when the user TAPS the widget (see
+                                 SysMonWidgetProvider.updateOneWidget(), which
+                                 wires the whole widget to a click that fires
+                                 ACTION_REFRESH) — Android's minimum allowed
+                                 auto-update interval is 30 minutes anyway, far
+                                 too infrequent to be useful here, and
+                                 tap-to-refresh avoids draining battery on stats
+                                 nobody's currently looking at.
+  initialLayout                — which layout file to show the very first
+                                 instant the widget is placed, before our code
+                                 has had a chance to run and fill in real data.
+  configure                    — which Activity to launch (and wait for) before
+                                 finishing widget placement — see
+                                 WidgetConfigActivity.kt.
+  resizeMode                   — the user is allowed to resize this widget both
+                                 horizontally and vertically on their home
+                                 screen.
+  widgetCategory                — this widget can live on the home screen
+                                 (as opposed to, e.g., the lock screen, which
+                                 some other widgetCategory values support).
+-->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:minWidth="250dp"
     android:minHeight="140dp"

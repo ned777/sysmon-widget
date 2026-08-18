@@ -1,4 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Default/fallback measurements. This file is loaded on ANY Android version, but
+  gets overridden by app/src/main/res/values-v31/dimens.xml on Android 12+
+  (API 31+) — Android automatically picks the more specific "-v31" version of a
+  resource when the phone's version qualifies, and falls back to this plain
+  values/ version otherwise. That's a general Android trick, not something
+  specific to dimens — you'll see the same "-v31", "-land", "-night" etc folder
+  suffixes used for all sorts of resources.
+-->
 <resources>
+    <!--
+      How rounded the widget's corners are drawn (see drawable/widget_background.xml).
+      16dp is just a reasonable-looking default for older phones that don't
+      enforce their own widget corner radius.
+    -->
     <dimen name="widget_corner_radius">16dp</dimen>
 </resources>

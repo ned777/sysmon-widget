@@ -1,4 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Starting with Android 12 (API 31), launchers like Samsung's OneUI enforce
+  their OWN rounded-corner mask on top of every home-screen widget, no matter
+  what corner radius the widget's own background drawable asks for — the
+  system just clips the widget's outer edges to its own consistent radius.
+
+  Rather than fight that (drawing corners that don't match the system's mask,
+  which makes borders look clipped/mismatched), we tell our own widget
+  background drawable to use whatever radius the system is ALREADY enforcing,
+  by pointing widget_corner_radius at the system's own dimension resource.
+  This file only gets picked up on API 31+ devices (the "-v31" folder suffix);
+  older phones keep using the plain 16dp fallback from values/dimens.xml.
+-->
 <resources>
     <item name="widget_corner_radius" type="dimen">@android:dimen/system_app_widget_background_radius</item>
 </resources>

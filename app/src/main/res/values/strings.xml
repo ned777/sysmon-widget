@@ -1,4 +1,15 @@
+<!--
+  Every piece of user-facing text in the app, in one place. Android strongly
+  encourages this instead of writing text directly in layout XML or Kotlin code,
+  for two big reasons: (1) it makes translating the app into other languages
+  just a matter of adding a values-XX/strings.xml with the same names but
+  different text, and (2) it means changing wording never requires touching
+  code. Referenced from XML as "@string/app_title" and from Kotlin as
+  R.string.app_title (or context.getString(R.string.app_title) when you need
+  the actual text, not just a reference to it).
+-->
 <resources>
+    <!-- The app's name as shown under its icon on the home screen / app drawer. -->
     <string name="app_name">DEVICE MONITOR AGENT</string>
     <string name="app_title">System Monitor Agent</string>
     <string name="app_subtitle">Created by Ned Nguyen</string>

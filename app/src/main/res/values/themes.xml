@@ -1,11 +1,31 @@
+<!--
+  A "theme" is a bundle of default styling values applied app-wide (or per
+  Activity) — colors, backgrounds, text colors — so individual layout files
+  don't have to repeat them everywhere. This one theme, Theme.SysMonWidget, is
+  set as the whole app's default theme in AndroidManifest.xml's
+  android:theme="@style/Theme.SysMonWidget" attribute on <application>, and both
+  Activities explicitly use it too.
+-->
 <resources xmlns:tools="http://schemas.android.com/tools">
+    <!--
+      `parent="Theme.MaterialComponents.NoActionBar"` means "start from Google's
+      standard Material Components dark theme (no top action bar), then override
+      just the specific colors listed below". We picked the plain (non-DayNight)
+      MaterialComponents base deliberately, so this app always looks the same
+      80s-neon way regardless of whether the phone's system-wide dark mode is on
+      or off — a DayNight theme would otherwise swap some of these colors
+      automatically based on that system setting.
+    -->
     <style name="Theme.SysMonWidget" parent="Theme.MaterialComponents.NoActionBar">
         <item name="colorPrimary">@color/retro_teal</item>
         <item name="colorPrimaryDark">@color/black</item>
         <item name="colorAccent">@color/retro_teal</item>
+        <!-- android:windowBackground is the default fill behind EVERY screen using this theme. -->
         <item name="android:windowBackground">@color/black</item>
+        <!-- Default text color for most TextViews that don't set their own android:textColor. -->
         <item name="android:textColorPrimary">@color/retro_teal</item>
         <item name="android:textColorSecondary">@color/retro_teal</item>
+        <!-- The faint placeholder text color shown inside empty EditText fields. -->
         <item name="android:textColorHint">@color/widget_text_secondary</item>
     </style>
 </resources>

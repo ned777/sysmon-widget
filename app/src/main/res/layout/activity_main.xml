@@ -1,4 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  This is the layout for MainActivity — the screen you see when you tap the app
+  icon. Android layout files are XML that describe a tree of "Views" (visible UI
+  elements) without any code; MainActivity.kt calls setContentView(R.layout.activity_main)
+  to say "build this exact tree of views and show it".
+
+  LinearLayout is the simplest layout container: it just stacks its children one
+  after another, either top-to-bottom or left-to-right, depending on
+  android:orientation.
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -6,6 +16,7 @@
     android:background="@color/black"
     android:padding="24dp">
 
+    <!-- The big app title at the top, in pink. -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -33,12 +44,31 @@
         android:textStyle="bold"
         android:layout_marginBottom="8dp" />
 
+    <!--
+      This is the actual scrolling list of devices. Notice it has no items
+      defined here in the XML at all — MainActivity.kt finds this exact View by
+      its id (findViewById<ListView>(R.id.deviceListView)) and attaches a
+      DeviceAdapter to it in code, which is what actually supplies the rows
+      (each row drawn using list_item_device.xml).
+
+      layout_height="0dp" combined with layout_weight="1" is a common trick:
+      "take zero space by default, then grow to fill whatever space is left
+      over" after every other sibling view has taken the space it needs. That's
+      how this list stretches to fill the middle of the screen while the title
+      above and button below keep their own natural sizes.
+    -->
     <ListView
         android:id="@+id/deviceListView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1" />
 
+    <!--
+      Tapping this Button is wired up in MainActivity.kt via
+      findViewById<Button>(R.id.addDeviceButton).setOnClickListener { ... } —
+      the XML only says WHAT the button looks like and WHERE it sits, never
+      WHAT HAPPENS when it's tapped. That behavior always lives in the .kt file.
+    -->
     <Button
         android:id="@+id/addDeviceButton"
         android:layout_width="match_parent"

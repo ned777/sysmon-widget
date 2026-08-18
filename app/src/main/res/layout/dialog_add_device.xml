@@ -1,10 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  The content shown inside the "Add device" / "Edit device" popup. This isn't a
+  full screen (Activity) — it's just the middle section of an AlertDialog, built
+  in MainActivity.kt's showDeviceDialog() function via
+  AlertDialog.Builder(this).setView(...). The Save/Cancel buttons themselves are
+  NOT part of this XML — AlertDialog.Builder adds those automatically from
+  .setPositiveButton() / .setNegativeButton() calls in the Kotlin code.
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="20dp">
 
+    <!--
+      android:hint shows faint placeholder text ("e.g. Home PC") only while the
+      field is empty — it's not a real value, just a visual example. Read out in
+      code via nameInput.text.toString().
+    -->
     <EditText
         android:id="@+id/deviceNameInput"
         android:layout_width="match_parent"
@@ -13,6 +26,11 @@
         android:inputType="text"
         android:autofillHints="" />
 
+    <!--
+      inputType="textUri" nudges the on-screen keyboard to show characters
+      handy for typing addresses (like ":" and "."), though we still just treat
+      whatever's typed as plain text — there's no strict URL validation here.
+    -->
     <EditText
         android:id="@+id/deviceAddressInput"
         android:layout_width="match_parent"

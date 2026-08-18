@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  One row inside the widget's scrolling stats list — "inflated" once per row by
+  StatsRemoteViewsFactory.getViewAt() in SysMonRemoteViewsService.kt. The actual
+  text (a styled SpannableString built by StatsFormat.boldLabel(), with the
+  label part cyan+bold and the value part teal) is set in code — this XML just
+  declares the single TextView and its default look.
+-->
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/statText"
     android:layout_width="match_parent"

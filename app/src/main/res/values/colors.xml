@@ -1,11 +1,29 @@
+<!--
+  Every named color the app uses, in one place. Any layout XML can reference one
+  of these with "@color/retro_pink" etc, and any Kotlin code can look one up with
+  ContextCompat.getColor(context, R.color.retro_pink) or (as StatsFormat.kt does
+  for its SpannableString colors) Color.parseColor("#00F0FF") using the same hex
+  value directly. Centralizing colors here means changing the whole app's theme
+  is mostly just editing this one file.
+-->
 <resources>
     <color name="teal_700">#00695C</color>
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
+
+    <!--
+      #FF000000 is an 8-digit hex color: the first pair (FF) is the alpha
+      (opacity) channel, and 000000 is plain black — so this is fully-opaque
+      black, used as the widget's background fill color.
+    -->
     <color name="widget_bg">#FF000000</color>
     <color name="widget_text_secondary">#B0BEC5</color>
 
-    <!-- 80s theme -->
+    <!--
+      80s / synthwave palette, used consistently across both the home-screen
+      widget and the app's own screens: pink for titles, yellow for device
+      names, cyan for labels/addresses, teal for everything else.
+    -->
     <color name="retro_yellow">#FFE600</color>
     <color name="retro_cyan">#00F0FF</color>
     <color name="retro_teal">#1DE9B6</color>

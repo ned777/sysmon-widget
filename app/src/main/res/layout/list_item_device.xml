@@ -1,4 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  This is the layout for ONE ROW in a devices list. It gets "inflated" (turned
+  into real View objects) once per device, by DeviceAdapter.getView() in
+  DeviceAdapter.kt. The same row layout is reused in two different screens: the
+  main device-management list (with edit/delete buttons visible) and the widget's
+  "pick a device" list (with those buttons hidden, since you're just choosing one
+  there, not managing them).
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -6,12 +14,19 @@
     android:gravity="center_vertical"
     android:padding="12dp">
 
+    <!--
+      A nested LinearLayout holding the name+address text, stacked vertically.
+      layout_width="0dp" + layout_weight="1" means "grow to fill all the leftover
+      horizontal space" — this is what pushes the edit/delete buttons to sit
+      snugly on the right edge of the row instead of right next to the text.
+    -->
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:orientation="vertical">
 
+        <!-- Set in code via view.findViewById<TextView>(R.id.deviceNameText).text = device.name -->
         <TextView
             android:id="@+id/deviceNameText"
             android:layout_width="match_parent"
@@ -21,6 +36,7 @@
             android:textColor="@color/retro_yellow"
             android:text="--" />
 
+        <!-- Set in code via view.findViewById<TextView>(R.id.deviceAddressText).text = device.address -->
         <TextView
             android:id="@+id/deviceAddressText"
             android:layout_width="match_parent"
@@ -30,12 +46,22 @@
             android:text="--" />
     </LinearLayout>
 
+    <!--
+      Edit button (a pencil symbol). DeviceAdapter only makes this VISIBLE when
+      an onEdit callback was actually supplied by whoever created the adapter —
+      see DeviceAdapter.kt. On the widget's device-picker screen this stays GONE.
+    -->
     <Button
         android:id="@+id/editButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="✎" />
 
+    <!--
+      Delete button (an X symbol). Only made VISIBLE by DeviceAdapter when this
+      list was built with showDelete = true — again, that only happens on the
+      main app's device-management screen, never on the widget's picker.
+    -->
     <Button
         android:id="@+id/deleteButton"
         android:layout_width="wrap_content"

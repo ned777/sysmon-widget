@@ -1,9 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  The layout for WidgetConfigActivity — the wizard shown right after you drag a
+  new SysMon widget onto your home screen. It's actually TWO full-screen groups
+  stacked on top of each other in the same file: deviceStepGroup (pick which
+  computer) and statsStepGroup (pick which stats to show). Only one is visible
+  at a time — WidgetConfigActivity.kt toggles their android:visibility between
+  VISIBLE and GONE to move between "step 1" and "step 2" without needing a
+  second Activity.
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+    <!-- STEP 1: choose which registered device this widget should watch. -->
     <LinearLayout
         android:id="@+id/deviceStepGroup"
         android:layout_width="match_parent"
@@ -19,12 +29,24 @@
             android:textStyle="bold"
             android:layout_marginBottom="12dp" />
 
+        <!--
+          Filled in with a DeviceAdapter by WidgetConfigActivity.kt (reusing the
+          same adapter and list_item_device.xml row layout as the main app
+          screen, but with the edit/delete buttons hidden — see
+          DeviceAdapter.kt).
+        -->
         <ListView
             android:id="@+id/configDeviceListView"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1" />
 
+        <!--
+          Both of these start hidden (visibility="gone") and are only revealed
+          by WidgetConfigActivity.kt in the specific case where you have ZERO
+          devices registered yet — guiding you to go add one first instead of
+          showing a confusingly empty list.
+        -->
         <TextView
             android:id="@+id/configEmptyText"
             android:layout_width="match_parent"
@@ -44,6 +66,11 @@
 
     </LinearLayout>
 
+    <!--
+      STEP 2: choose which stats to display on this widget. Starts hidden;
+      WidgetConfigActivity.showStatsStep() reveals it (and hides step 1) once a
+      device has been picked.
+    -->
     <LinearLayout
         android:id="@+id/statsStepGroup"
         android:layout_width="match_parent"
@@ -60,6 +87,11 @@
             android:textStyle="bold"
             android:layout_marginBottom="12dp" />
 
+        <!--
+          Each CheckBox's checked/unchecked state is read directly by
+          WidgetConfigActivity.kt when "Done" is tapped — there's no adapter or
+          list here, just five plain checkboxes, all checked by default.
+        -->
         <CheckBox
             android:id="@+id/checkRam"
             android:layout_width="match_parent"
@@ -95,6 +127,11 @@
             android:text="@string/stat_status"
             android:checked="true" />
 
+        <!--
+          Tapping this is what finally calls setResult(RESULT_OK, ...) and
+          finish() in WidgetConfigActivity.kt — the point where Android actually
+          goes ahead and places the widget on the home screen.
+        -->
         <Button
             android:id="@+id/doneConfigButton"
             android:layout_width="match_parent"

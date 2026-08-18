@@ -1,6 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  The manifest is the "table of contents" for the whole app — Android reads this
+  file BEFORE running any of your code to find out what components (screens,
+  background services, broadcast receivers) exist, what permissions the app
+  needs, and how the OS should launch/route to each piece. If a class isn't
+  declared here, Android doesn't know it exists, no matter how correct the
+  Kotlin code is.
+-->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!--
+      Permissions the app needs, requested up front (the OS shows these — or on
+      modern Android, some are silently granted for "normal" permissions like
+      these two — when the app is installed/first run).
+      INTERNET               — required to make the HTTP request to the agent
+                                (see StatsClient.kt) — without this, ALL network
+                                calls from the app would be blocked by the OS.
+      ACCESS_NETWORK_STATE   — lets the app check general network connectivity
+                                info.
+    -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
@@ -12,7 +30,20 @@
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
         android:theme="@style/Theme.SysMonWidget">
+        <!--
+          usesCleartextTraffic="true" is important and easy to forget: modern
+          Android BLOCKS plain (non-HTTPS) "http://" network requests by
+          default. Our little Python agent only speaks plain HTTP on the local
+          network (see StatsClient.kt building "http://$serverAddress/stats"),
+          so without this flag every request would silently fail.
+        -->
 
+        <!--
+          The main screen (device list). The <intent-filter> with action MAIN +
+          category LAUNCHER is what makes this the specific screen that opens
+          when you tap the app's icon — without exactly this intent-filter,
+          Android wouldn't show the app in the launcher/app drawer at all.
+        -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -23,6 +54,13 @@
             </intent-filter>
         </activity>
 
+        <!--
+          The widget setup wizard (device + stats picker). Its intent-filter
+          action, APPWIDGET_CONFIGURE, is a standard system action — declaring
+          it here is what lets sysmon_widget_info.xml's
+          android:configure="com.sysmonwidget.app.WidgetConfigActivity" attribute
+          actually find and launch this specific Activity.
+        -->
         <activity
             android:name=".WidgetConfigActivity"
             android:exported="true"
@@ -32,11 +70,36 @@
             </intent-filter>
         </activity>
 
+        <!--
+          The service backing the widget's scrolling stats list (see
+          SysMonRemoteViewsService.kt). android:permission="BIND_REMOTEVIEWS" is
+          a REQUIRED security restriction for this exact kind of service — it
+          means only the system itself (specifically, the launcher acting on
+          the system's behalf) is allowed to bind to it, not just any app on
+          the phone. exported="false" additionally means no other app can even
+          attempt to start this service directly.
+        -->
         <service
             android:name=".SysMonRemoteViewsService"
             android:permission="android.permission.BIND_REMOTEVIEWS"
             android:exported="false" />
 
+        <!--
+          The widget's "brain" (see SysMonWidgetProvider.kt). exported="false"
+          means only broadcasts sent by our own app process reach it directly
+          (though the OS itself is always allowed to deliver the standard
+          widget lifecycle broadcasts regardless of this flag — exported mainly
+          controls whether OTHER apps could poke it).
+            - APPWIDGET_UPDATE is the standard system broadcast that ultimately
+              triggers onUpdate() in SysMonWidgetProvider.kt.
+            - com.sysmonwidget.app.ACTION_REFRESH is OUR OWN custom broadcast,
+              fired when the widget is tapped or when a device is
+              added/edited/removed elsewhere in the app (see
+              SysMonWidgetProvider.refreshAllWidgets()).
+          The nested <meta-data> is what links this receiver to
+          sysmon_widget_info.xml, supplying all the widget's size/behavior
+          details described in that file.
+        -->
         <receiver
             android:name=".SysMonWidgetProvider"
             android:exported="false">
