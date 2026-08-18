@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">DEVICE MONITOR AGENT</string>
+    <string name="app_title">System Monitor Agent</string>
     <string name="app_subtitle">Created by Ned Nguyen</string>
     <string name="devices_header">Devices</string>
     <string name="add_device">Add device</string>
