@@ -33,25 +33,6 @@ def read_disk_usage():
     return {"total_gb": total_gb, "used_gb": used_gb, "percent": percent}
 
 
-def read_cpu_temp():
-    base = Path("/sys/class/thermal")
-    if not base.is_dir():
-        return None
-    fallback = None
-    for zone in sorted(base.glob("thermal_zone*")):
-        try:
-            zone_type = (zone / "type").read_text().strip().lower()
-            temp_raw = int((zone / "temp").read_text().strip())
-        except (OSError, ValueError):
-            continue
-        celsius = temp_raw / 1000.0
-        if "pkg" in zone_type or "cpu" in zone_type:
-            return round(celsius, 1)
-        if fallback is None:
-            fallback = celsius
-    return round(fallback, 1) if fallback is not None else None
-
-
 def compute_claude_stats():
     today = date.today()
     cutoff = today - timedelta(days=6)  # rolling 7-day window, inclusive of today
@@ -129,7 +110,6 @@ class Handler(BaseHTTPRequestHandler):
         payload = {
             "ram": read_meminfo(),
             "storage": read_disk_usage(),
-            "cpu_temp_c": read_cpu_temp(),
             "claude": compute_claude_stats(),
             "generated_at": datetime.now().astimezone().isoformat(),
         }

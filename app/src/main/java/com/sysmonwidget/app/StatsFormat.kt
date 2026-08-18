@@ -26,16 +26,13 @@ object StatsFormat {
             "%dGB out of %dGB".format(storage.getInt("used_gb"), storage.getInt("total_gb"))
         )
 
-        val tempValue = if (json.isNull("cpu_temp_c")) "N/A" else "%.0f°C".format(json.getDouble("cpu_temp_c"))
-        val tempRow = boldLabel("Temp: ", tempValue)
-
         val claude = json.getJSONObject("claude")
         val dailyRow = boldLabel("Claude (Daily): ", tokenSummary(claude.getJSONObject("tokens_daily")))
         val weeklyRow = boldLabel("Claude (Weekly): ", tokenSummary(claude.getJSONObject("tokens_weekly")))
 
         val statusRow = boldLabel("Status: ", if (reachable) "Online" else "Offline")
 
-        return listOf(ramRow, storageRow, tempRow, dailyRow, weeklyRow, statusRow)
+        return listOf(ramRow, storageRow, dailyRow, weeklyRow, statusRow)
     }
 
     private fun tokenSummary(tokens: JSONObject): String {
