@@ -20,7 +20,6 @@ PRICING = {
 }
 
 _prev_net = None  # (timestamp, rx_bytes, tx_bytes, iface)
-_prev_cpu = None  # (idle_all, total)
 
 
 def read_meminfo():
@@ -80,32 +79,6 @@ def get_network_stats():
 
     _prev_net = (now, rx, tx, iface)
     return {"rx_bytes_per_sec": rx_rate, "tx_bytes_per_sec": tx_rate, "interface": iface}
-
-
-def read_cpu_times():
-    with open("/proc/stat") as f:
-        fields = f.readline().split()[1:]  # skip leading "cpu"
-    nums = [int(x) for x in fields[:8]]  # user nice system idle iowait irq softirq steal
-    user, nice, system, idle, iowait, irq, softirq, steal = nums
-    idle_all = idle + iowait
-    total = user + nice + system + idle_all + irq + softirq + steal
-    return idle_all, total
-
-
-def get_cpu_percent():
-    global _prev_cpu
-    idle_all, total = read_cpu_times()
-
-    percent = 0.0
-    if _prev_cpu is not None:
-        prev_idle, prev_total = _prev_cpu
-        delta_total = total - prev_total
-        delta_idle = idle_all - prev_idle
-        if delta_total > 0:
-            percent = round(100 * (1 - delta_idle / delta_total), 1)
-
-    _prev_cpu = (idle_all, total)
-    return {"percent": percent}
 
 
 def read_disk_usage():
@@ -213,7 +186,6 @@ class Handler(BaseHTTPRequestHandler):
 
         payload = {
             "ram": read_meminfo(),
-            "cpu": get_cpu_percent(),
             "storage": read_disk_usage(),
             "network": get_network_stats(),
             "claude": compute_claude_stats(),

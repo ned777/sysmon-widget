@@ -60,6 +60,7 @@ class SysMonWidgetProvider : AppWidgetProvider() {
             editor.remove("widget_${id}_device_id")
             editor.remove("widget_${id}_last_stats_json")
             editor.remove("widget_${id}_last_stats_time")
+            editor.remove("widget_${id}_reachable")
         }
         editor.apply()
     }
@@ -90,10 +91,12 @@ class SysMonWidgetProvider : AppWidgetProvider() {
             prefs.edit()
                 .putString("widget_${id}_last_stats_json", json.toString())
                 .putLong("widget_${id}_last_stats_time", System.currentTimeMillis())
+                .putBoolean("widget_${id}_reachable", true)
                 .apply()
             views.setTextViewText(R.id.titleText, device.name)
             views.setTextViewText(R.id.updatedText, "Updated ${timeString(System.currentTimeMillis())}")
         } else {
+            prefs.edit().putBoolean("widget_${id}_reachable", false).apply()
             val cached = prefs.getString("widget_${id}_last_stats_json", null)
             val lastTime = prefs.getLong("widget_${id}_last_stats_time", 0L)
             if (cached != null) {

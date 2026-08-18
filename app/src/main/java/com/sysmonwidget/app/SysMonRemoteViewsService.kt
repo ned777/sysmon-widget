@@ -28,9 +28,10 @@ class StatsRemoteViewsFactory(
     override fun onDataSetChanged() {
         val prefs = context.getSharedPreferences("sysmon", Context.MODE_PRIVATE)
         val cached = prefs.getString("widget_${appWidgetId}_last_stats_json", null)
+        val reachable = prefs.getBoolean("widget_${appWidgetId}_reachable", true)
         rows = if (cached != null) {
             try {
-                StatsFormat.buildStatRows(JSONObject(cached))
+                StatsFormat.buildStatRows(JSONObject(cached), reachable)
             } catch (e: Exception) {
                 emptyList()
             }

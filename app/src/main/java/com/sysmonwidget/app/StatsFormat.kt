@@ -14,14 +14,13 @@ object StatsFormat {
         return spannable
     }
 
-    fun buildStatRows(json: JSONObject): List<CharSequence> {
+    fun buildStatRows(json: JSONObject, reachable: Boolean): List<CharSequence> {
+        val statusRow = boldLabel("Status: ", if (reachable) "Online" else "Offline")
+
         val ram = json.getJSONObject("ram")
         val ramUsedGb = ram.getInt("used_mb") / 1024.0
         val ramTotalGb = ram.getInt("total_mb") / 1024.0
         val ramRow = boldLabel("RAM: ", "%.0fGB out of %.0fGB".format(ramUsedGb, ramTotalGb))
-
-        val cpu = json.getJSONObject("cpu")
-        val cpuRow = boldLabel("CPU: ", "%.0f%%".format(cpu.getDouble("percent")))
 
         val storage = json.getJSONObject("storage")
         val storageRow = boldLabel(
@@ -45,7 +44,7 @@ object StatsFormat {
             "%s in / %s out · ~$%.2f".format(formatTokens(inTok), formatTokens(outTok), cost)
         )
 
-        return listOf(ramRow, cpuRow, storageRow, netRow, claudeRow)
+        return listOf(statusRow, ramRow, storageRow, netRow, claudeRow)
     }
 
     fun formatRate(bytesPerSec: Long): String {
