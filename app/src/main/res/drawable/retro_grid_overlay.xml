@@ -30,7 +30,7 @@
         android:pathData="M0,108 L300,108"
         android:strokeColor="@color/retro_cyan"
         android:strokeWidth="1.5"
-        android:strokeAlpha="0.6" />
+        android:strokeAlpha="0.65" />
 
     <!--
       Horizontal "floor" lines below the horizon. Real perspective means lines
@@ -40,11 +40,11 @@
       below increase together as we move down the list. All kept faint
       overall so they read as texture, not as something competing with text.
     -->
-    <path android:pathData="M20,116 L280,116" android:strokeColor="@color/retro_cyan" android:strokeWidth="1" android:strokeAlpha="0.2" />
-    <path android:pathData="M5,126 L295,126" android:strokeColor="@color/retro_cyan" android:strokeWidth="1" android:strokeAlpha="0.28" />
-    <path android:pathData="M-15,140 L315,140" android:strokeColor="@color/retro_cyan" android:strokeWidth="1.2" android:strokeAlpha="0.36" />
-    <path android:pathData="M-40,158 L340,158" android:strokeColor="@color/retro_cyan" android:strokeWidth="1.3" android:strokeAlpha="0.44" />
-    <path android:pathData="M-70,180 L370,180" android:strokeColor="@color/retro_cyan" android:strokeWidth="1.5" android:strokeAlpha="0.52" />
+    <path android:pathData="M20,116 L280,116" android:strokeColor="@color/retro_cyan" android:strokeWidth="1" android:strokeAlpha="0.24" />
+    <path android:pathData="M5,126 L295,126" android:strokeColor="@color/retro_cyan" android:strokeWidth="1" android:strokeAlpha="0.32" />
+    <path android:pathData="M-15,140 L315,140" android:strokeColor="@color/retro_cyan" android:strokeWidth="1.2" android:strokeAlpha="0.4" />
+    <path android:pathData="M-40,158 L340,158" android:strokeColor="@color/retro_cyan" android:strokeWidth="1.3" android:strokeAlpha="0.48" />
+    <path android:pathData="M-70,180 L370,180" android:strokeColor="@color/retro_cyan" android:strokeWidth="1.5" android:strokeAlpha="0.56" />
 
     <!--
       Vertical "floor" lines, all converging on the same single point where
@@ -52,10 +52,10 @@
       point is the "vanishing point" that makes this read as a floor
       receding into the distance rather than just a grid of squares.
     -->
-    <path android:pathData="M150,108 L20,180" android:strokeColor="@color/retro_cyan" android:strokeWidth="1" android:strokeAlpha="0.28" />
-    <path android:pathData="M150,108 L90,180" android:strokeColor="@color/retro_cyan" android:strokeWidth="1" android:strokeAlpha="0.28" />
-    <path android:pathData="M150,108 L150,180" android:strokeColor="@color/retro_cyan" android:strokeWidth="1" android:strokeAlpha="0.28" />
-    <path android:pathData="M150,108 L210,180" android:strokeColor="@color/retro_cyan" android:strokeWidth="1" android:strokeAlpha="0.28" />
-    <path android:pathData="M150,108 L280,180" android:strokeColor="@color/retro_cyan" android:strokeWidth="1" android:strokeAlpha="0.28" />
+    <path android:pathData="M150,108 L20,180" android:strokeColor="@color/retro_cyan" android:strokeWidth="1" android:strokeAlpha="0.32" />
+    <path android:pathData="M150,108 L90,180" android:strokeColor="@color/retro_cyan" android:strokeWidth="1" android:strokeAlpha="0.32" />
+    <path android:pathData="M150,108 L150,180" android:strokeColor="@color/retro_cyan" android:strokeWidth="1" android:strokeAlpha="0.32" />
+    <path android:pathData="M150,108 L210,180" android:strokeColor="@color/retro_cyan" android:strokeWidth="1" android:strokeAlpha="0.32" />
+    <path android:pathData="M150,108 L280,180" android:strokeColor="@color/retro_cyan" android:strokeWidth="1" android:strokeAlpha="0.32" />
 
 </vector>
