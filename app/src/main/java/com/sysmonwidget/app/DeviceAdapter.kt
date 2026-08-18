@@ -24,13 +24,19 @@ import android.widget.TextView
  *                     Left null (the default) on screens where editing doesn't make
  *                     sense — e.g. the widget's device-picker list only shows the
  *                     ✎ button when this is actually supplied.
+ * @param statsFor     given a Device, returns its current styled stats text (or
+ *                     null while a fetch is still in flight) to show below the
+ *                     address. Left null (the default) on screens that shouldn't
+ *                     show live stats at all — e.g. the widget's device-picker
+ *                     list, which is just choosing a device, not monitoring one.
  */
 class DeviceAdapter(
     private val context: Context,
     private var devices: List<Device>,
     private val showDelete: Boolean,
     private val onDelete: ((Device) -> Unit)? = null,
-    private val onEdit: ((Device) -> Unit)? = null
+    private val onEdit: ((Device) -> Unit)? = null,
+    private val statsFor: ((Device) -> CharSequence?)? = null
 ) : BaseAdapter() {
 
     /**
@@ -90,6 +96,14 @@ class DeviceAdapter(
             editButton.setOnClickListener { onEdit.invoke(device) }
         } else {
             editButton.visibility = View.GONE
+        }
+
+        val statsText = view.findViewById<TextView>(R.id.deviceStatsText)
+        if (statsFor != null) {
+            statsText.visibility = View.VISIBLE
+            statsText.text = statsFor.invoke(device) ?: context.getString(R.string.loading_stats)
+        } else {
+            statsText.visibility = View.GONE
         }
         return view
     }

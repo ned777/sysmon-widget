@@ -31,4 +31,5 @@
     <string name="done">Done</string>
     <string name="widget_unreachable">Unreachable</string>
     <string name="widget_no_device">No device — open app to add one</string>
+    <string name="loading_stats">Loading stats…</string>
 </resources>

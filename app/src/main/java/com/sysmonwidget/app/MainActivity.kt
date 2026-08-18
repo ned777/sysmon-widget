@@ -28,6 +28,13 @@ class MainActivity : AppCompatActivity() {
     // variable here but only actually create it a few lines below.
     private lateinit var adapter: DeviceAdapter
 
+    // The latest known stats text for each device, keyed by device id. Starts
+    // empty for every device; refreshDeviceStats() fills entries in one at a
+    // time as each device's network fetch finishes, and DeviceAdapter reads
+    // from this map (via the statsFor lambda passed to it below) every time it
+    // draws a row — a device with no entry yet just shows a loading placeholder.
+    private val deviceStats = mutableMapOf<String, CharSequence>()
+
     /**
      * onCreate() is called once by Android when this screen is first being built,
      * before the user ever sees it. This is where we set up everything the screen
@@ -57,7 +64,8 @@ class MainActivity : AppCompatActivity() {
                 SysMonWidgetProvider.refreshAllWidgets(this)
                 Toast.makeText(this, "Removed ${device.name}", Toast.LENGTH_SHORT).show()
             },
-            onEdit = { device -> showDeviceDialog(device) }
+            onEdit = { device -> showDeviceDialog(device) },
+            statsFor = { device -> deviceStats[device.id] }
         )
         // Hook the adapter up to the actual ListView from the layout so it starts
         // drawing rows.
@@ -78,6 +86,39 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         adapter.updateDevices(DeviceStore.loadDevices(this))
+        refreshDeviceStats()
+    }
+
+    /**
+     * Kicks off a live stats fetch for every registered device, in the
+     * background, and updates the list as each one finishes. Unlike the
+     * widget (which only fetches for devices it's actually configured to
+     * watch, and caches the result to disk), the app fetches for every device
+     * every time this screen becomes visible, since its whole purpose here is
+     * showing "everything, right now" — see StatsFormat.buildAllStatRows().
+     */
+    private fun refreshDeviceStats() {
+        DeviceStore.loadDevices(this).forEach { device ->
+            // Each device gets its own background Thread so a slow/offline
+            // device doesn't hold up the others — StatsClient.fetchStats()
+            // blocks for up to a few seconds, which would freeze the whole
+            // screen if run directly on the main thread here.
+            Thread {
+                val json = StatsClient.fetchStats(device.address)
+                val text = if (json != null) {
+                    StatsFormat.joinRows(StatsFormat.buildAllStatRows(json, reachable = true))
+                } else {
+                    StatsFormat.boldLabel("Status: ", "Offline")
+                }
+                // Views can only be touched from the main/UI thread — runOnUiThread
+                // hands this block back over to it before we update the map and
+                // ask the adapter to redraw.
+                runOnUiThread {
+                    deviceStats[device.id] = text
+                    adapter.notifyDataSetChanged()
+                }
+            }.start()
+        }
     }
 
     /**

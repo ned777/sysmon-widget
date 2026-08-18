@@ -11,7 +11,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:gravity="center_vertical"
+    android:gravity="top"
     android:padding="12dp">
 
     <!--
@@ -44,6 +44,23 @@
             android:textSize="13sp"
             android:textColor="@color/retro_orange"
             android:text="--" />
+
+        <!--
+          Every stat this device currently reports (RAM, Storage, Claude
+          Daily/Weekly if present, Status) — unlike the widget, the app always
+          shows all of it, with no per-stat picker. DeviceAdapter.kt fetches
+          this live and fills it in; it starts out showing a "Loading stats…"
+          placeholder until the first fetch for this device finishes.
+        -->
+        <TextView
+            android:id="@+id/deviceStatsText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textSize="12sp"
+            android:lineSpacingExtra="2dp"
+            android:textColor="@color/retro_white"
+            android:text="" />
     </LinearLayout>
 
     <!--

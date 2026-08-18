@@ -3,6 +3,7 @@ package com.sysmonwidget.app
 import android.graphics.Color
 import android.graphics.Typeface
 import android.text.SpannableString
+import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
@@ -89,25 +90,8 @@ object StatsFormat {
         // `in` here checks set membership: "is the string KEY_RAM present inside
         // the enabledStats set?" — if the user turned this stat off, we skip it
         // entirely and it just won't appear as a row.
-        if (KEY_RAM in enabledStats) {
-            val ram = json.getJSONObject("ram")
-            // The agent reports RAM in megabytes; dividing by 1024.0 (a Double,
-            // note the decimal point) converts it to gigabytes with fractional
-            // precision, which "%.0f" below then rounds to a whole number to show.
-            val ramUsedGb = ram.getInt("used_mb") / 1024.0
-            val ramTotalGb = ram.getInt("total_mb") / 1024.0
-            rows.add(boldLabel("RAM: ", "%.0fGB out of %.0fGB".format(ramUsedGb, ramTotalGb)))
-        }
-
-        if (KEY_STORAGE in enabledStats) {
-            val storage = json.getJSONObject("storage")
-            rows.add(
-                boldLabel(
-                    "Storage: ",
-                    "%dGB out of %dGB".format(storage.getInt("used_gb"), storage.getInt("total_gb"))
-                )
-            )
-        }
+        if (KEY_RAM in enabledStats) rows.add(ramRow(json.getJSONObject("ram")))
+        if (KEY_STORAGE in enabledStats) rows.add(storageRow(json.getJSONObject("storage")))
 
         if (KEY_CLAUDE_DAILY in enabledStats) {
             val claude = json.getJSONObject("claude")
@@ -125,6 +109,70 @@ object StatsFormat {
 
         return rows
     }
+
+    /**
+     * Builds EVERY stat row a device's JSON actually supports — used by the app's
+     * own device list, which (unlike a widget) always shows everything rather
+     * than letting the user pick a subset. Unlike buildStatRows() above, this
+     * never assumes a key is present just because it was "enabled" — it checks
+     * `json.has(...)` itself and quietly skips a row if the data isn't there, so
+     * a device that doesn't run Claude Code (and therefore never reports a
+     * "claude" section) simply shows RAM/Storage/Status with no Claude rows,
+     * instead of crashing or showing a broken row.
+     */
+    fun buildAllStatRows(json: JSONObject, reachable: Boolean): List<CharSequence> {
+        val rows = mutableListOf<CharSequence>()
+
+        if (json.has("ram")) rows.add(ramRow(json.getJSONObject("ram")))
+        if (json.has("storage")) rows.add(storageRow(json.getJSONObject("storage")))
+
+        if (json.has("claude")) {
+            val claude = json.getJSONObject("claude")
+            if (claude.has("tokens_daily")) {
+                rows.add(boldLabel("Claude (Daily): ", tokenSummary(claude.getJSONObject("tokens_daily"))))
+            }
+            if (claude.has("tokens_weekly")) {
+                rows.add(boldLabel("Claude (Weekly): ", tokenSummary(claude.getJSONObject("tokens_weekly"))))
+            }
+        }
+
+        rows.add(boldLabel("Status: ", if (reachable) "Online" else "Offline"))
+        return rows
+    }
+
+    /**
+     * Combines several rows (each its own separately-styled SpannableString)
+     * into ONE piece of text with a line break between each — for a widget row
+     * this isn't needed (every row gets its own separate TextView), but the
+     * app's device list shows a whole device's stats inside a single TextView,
+     * so they need to be one CharSequence. SpannableStringBuilder is like
+     * SpannableString but mutable/appendable, and appending a CharSequence that
+     * already carries color/bold spans preserves those spans automatically —
+     * this is what keeps each row's own coloring intact after combining.
+     */
+    fun joinRows(rows: List<CharSequence>): CharSequence {
+        val builder = SpannableStringBuilder()
+        rows.forEachIndexed { index, row ->
+            if (index > 0) builder.append("\n")
+            builder.append(row)
+        }
+        return builder
+    }
+
+    private fun ramRow(ram: JSONObject): SpannableString {
+        // The agent reports RAM in megabytes; dividing by 1024.0 (a Double,
+        // note the decimal point) converts it to gigabytes with fractional
+        // precision, which "%.0f" below then rounds to a whole number to show.
+        val ramUsedGb = ram.getInt("used_mb") / 1024.0
+        val ramTotalGb = ram.getInt("total_mb") / 1024.0
+        return boldLabel("RAM: ", "%.0fGB out of %.0fGB".format(ramUsedGb, ramTotalGb))
+    }
+
+    private fun storageRow(storage: JSONObject): SpannableString =
+        boldLabel(
+            "Storage: ",
+            "%dGB out of %dGB".format(storage.getInt("used_gb"), storage.getInt("total_gb"))
+        )
 
     /**
      * Builds the "1.2M in / 340K out" part of a Claude usage row.
