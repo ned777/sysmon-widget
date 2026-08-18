@@ -1,0 +1,10 @@
+[Unit]
+Description=SysMon local stats agent
+
+[Service]
+ExecStart=/usr/bin/python3 /home/nnguyen/projects/sysmon-widget/agent/monitor_agent.py
+Restart=on-failure
+Environment=MONITOR_PORT=8765
+
+[Install]
+WantedBy=default.target

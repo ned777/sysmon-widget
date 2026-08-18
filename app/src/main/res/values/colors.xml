@@ -1,0 +1,7 @@
+<resources>
+    <color name="teal_700">#00695C</color>
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+    <color name="widget_bg">#EE102A27</color>
+    <color name="widget_text_secondary">#B0BEC5</color>
+</resources>

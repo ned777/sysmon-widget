@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">DEVICE MONITOR AGENT</string>
+    <string name="app_subtitle">Created by Ned Nguyen</string>
+    <string name="server_address_hint">192.168.1.50:8765</string>
+    <string name="save">Save</string>
+    <string name="saved_toast">Saved</string>
+    <string name="server_address_label">Monitor agent address (ip:port)</string>
+    <string name="widget_unreachable">Unreachable</string>
+    <string name="widget_no_server">Set server address</string>
+</resources>
