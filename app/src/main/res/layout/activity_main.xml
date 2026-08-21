@@ -71,11 +71,24 @@
       how this list stretches to fill the middle of the screen while the title
       above and button below keep their own natural sizes.
     -->
-    <ListView
-        android:id="@+id/deviceListView"
+    <!--
+      Wraps the list so a swipe-down-to-refresh gesture is available anywhere
+      over it. Only ListView (and a few other scrolling views) are supported
+      as SwipeRefreshLayout's single direct child — MainActivity.kt finds this
+      wrapper by id to control the spinner and listen for the swipe gesture.
+    -->
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefresh"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="1">
+
+        <ListView
+            android:id="@+id/deviceListView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <!--
       Tapping this Button is wired up in MainActivity.kt via

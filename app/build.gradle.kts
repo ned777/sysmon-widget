@@ -94,4 +94,5 @@ dependencies {
     implementation("androidx.core:core-ktx:1.13.1")       // Kotlin-friendly extensions over core Android APIs.
     implementation("androidx.appcompat:appcompat:1.7.0")   // Backwards-compatible base classes, incl. AppCompatActivity.
     implementation("com.google.android.material:material:1.12.0") // Material Components (theming, widgets like AlertDialog styling).
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0") // Pull-to-refresh gesture on the device list.
 }

@@ -204,7 +204,7 @@ class SysMonWidgetProvider : AppWidgetProvider() {
         val result = DeviceStatsCache.fetch(context, device)
         if (result.reachable) {
             views.setTextViewText(R.id.titleText, device.name)
-            views.setTextViewText(R.id.updatedText, "Updated ${timeString(result.fetchedAt)}")
+            views.setTextViewText(R.id.updatedText, "Updated ${timestampString(result.fetchedAt)}")
         } else if (result.json != null) {
             // We have stale-but-real numbers to show — the stats list itself
             // will keep displaying them (StatsRemoteViewsFactory reads from
@@ -213,7 +213,7 @@ class SysMonWidgetProvider : AppWidgetProvider() {
             views.setTextViewText(R.id.titleText, device.name)
             views.setTextViewText(
                 R.id.updatedText,
-                "${context.getString(R.string.widget_unreachable)} — last ${timeString(result.fetchedAt)}"
+                "${context.getString(R.string.widget_unreachable)} — last ${timestampString(result.fetchedAt)}"
             )
         } else {
             // We've NEVER successfully reached this device — nothing to fall
@@ -261,10 +261,12 @@ class SysMonWidgetProvider : AppWidgetProvider() {
         views.setRemoteAdapter(R.id.statsList, serviceIntent)
     }
 
-    // Formats a timestamp as a plain "HH:mm" 24-hour clock string, e.g. "14:32",
-    // using the device's own locale/settings for how that's displayed.
-    private fun timeString(millis: Long): String =
-        SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(millis))
+    // Formats a timestamp with date, 24-hour clock, and timezone abbreviation,
+    // e.g. "Aug 21, 14:32 PDT" — the timezone is included so a glance at the
+    // widget still makes sense after traveling somewhere with a different
+    // local time than wherever the monitored device itself sits.
+    private fun timestampString(millis: Long): String =
+        SimpleDateFormat("MMM d, HH:mm zzz", Locale.getDefault()).format(Date(millis))
 
     // device.address is stored as "ip:port" (e.g. "192.168.1.50:8765") — for
     // display next to the title we only want the ip part, so we cut the string

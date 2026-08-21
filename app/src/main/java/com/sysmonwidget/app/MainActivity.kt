@@ -8,6 +8,8 @@ import android.widget.ListView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * An "Activity" is Android's word for one full screen of your app that the user can
@@ -27,6 +29,7 @@ class MainActivity : AppCompatActivity() {
     // now". We can't build the adapter until onCreate() runs, so we declare the
     // variable here but only actually create it a few lines below.
     private lateinit var adapter: DeviceAdapter
+    private lateinit var swipeRefresh: SwipeRefreshLayout
 
     // The latest known stats text for each device, keyed by device id. Starts
     // empty for every device; refreshDeviceStats() fills entries in one at a
@@ -76,6 +79,15 @@ class MainActivity : AppCompatActivity() {
         // When "Add device" is tapped, open the same dialog used for editing, but
         // with `null` meaning "there's no existing device — start blank".
         findViewById<Button>(R.id.addDeviceButton).setOnClickListener { showDeviceDialog(null) }
+
+        // Swiping down over the list re-fetches live stats for every device,
+        // same as refreshDeviceStats() already does on every onResume(). The
+        // spinner SwipeRefreshLayout shows automatically while isRefreshing is
+        // true; we flip it back off once every device's fetch has finished.
+        swipeRefresh = findViewById(R.id.swipeRefresh)
+        swipeRefresh.setOnRefreshListener {
+            refreshDeviceStats(DeviceStore.loadDevices(this)) { swipeRefresh.isRefreshing = false }
+        }
     }
 
     /**
@@ -116,7 +128,17 @@ class MainActivity : AppCompatActivity() {
      * of the app or a widget fetches most recently is what both end up
      * showing — there's no separate, independently-fetched copy anymore.
      */
-    private fun refreshDeviceStats(devices: List<Device>) {
+    private fun refreshDeviceStats(devices: List<Device>, onComplete: () -> Unit = {}) {
+        // Tracks how many of the devices' background fetches are still in
+        // flight, so we can call onComplete() exactly once, after the LAST
+        // one finishes — used by the swipe-to-refresh spinner above to know
+        // when it's safe to stop spinning. Needs to be atomic since each
+        // device's Thread decrements it from a different thread.
+        val remaining = AtomicInteger(devices.size)
+        if (devices.isEmpty()) {
+            onComplete()
+            return
+        }
         devices.forEach { device ->
             // Each device gets its own background Thread so a slow/offline
             // device doesn't hold up the others — DeviceStatsCache.fetch()
@@ -135,6 +157,7 @@ class MainActivity : AppCompatActivity() {
                 runOnUiThread {
                     deviceStats[device.id] = text
                     adapter.notifyDataSetChanged()
+                    if (remaining.decrementAndGet() == 0) onComplete()
                 }
             }.start()
         }
