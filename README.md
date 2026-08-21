@@ -43,6 +43,13 @@ the widget keeps showing the last successful reading and flips `Status` to
 so shrinking the widget (down to about a 2×1 grid cell) scrolls instead of
 clipping.
 
+### Screenshots
+
+<p>
+  <img src="screenshots/sysmon-widgets-home-screen.jpg" width="45%" alt="Three device widgets (DNS Resolver, Linux.AI Server, VPN Server) on the home screen" />
+  <img src="screenshots/sysmon-device-manager.jpg" width="45%" alt="Device Monitor Agent app showing the registered devices list" />
+</p>
+
 ### Why there's no CPU or network row
 
 An earlier version showed CPU usage and network throughput. Both were
