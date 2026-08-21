@@ -104,16 +104,19 @@ class MainActivity : AppCompatActivity() {
      * out of the add/edit dialog, or switching apps and returning). We reload the
      * device list here so the screen always reflects the latest saved data, even
      * if it changed somewhere else in the meantime.
+     *
+     * This deliberately does NOT trigger a network fetch — only showing
+     * whatever's already cached (including data the WIDGET fetched moments
+     * ago, since both now read/write the same DeviceStatsCache). A live
+     * fetch only happens when the user explicitly asks for one via
+     * pull-to-refresh, so just opening/returning to the app never causes
+     * network traffic on its own.
      */
     override fun onResume() {
         super.onResume()
         val devices = DeviceStore.loadDevices(this)
         adapter.updateDevices(devices)
 
-        // Show whatever's already cached immediately — including data the
-        // WIDGET fetched moments ago, since both now read/write the same
-        // DeviceStatsCache — instead of blanking every row to "Loading
-        // stats…" while we wait on a fresh fetch below.
         devices.forEach { device ->
             val cached = DeviceStatsCache.read(this, device.id)
             if (cached.json != null) {
@@ -122,25 +125,20 @@ class MainActivity : AppCompatActivity() {
             }
         }
         adapter.notifyDataSetChanged()
-
-        // Repaint any placed widgets from this same cache too, in case a
-        // widget's own last update predates whatever's now showing here
-        // (e.g. the app was opened right after being installed/updated).
-        SysMonWidgetProvider.repaintAllWidgets(this)
-
-        refreshDeviceStats(devices) { SysMonWidgetProvider.repaintAllWidgets(this) }
     }
 
     /**
      * Kicks off a live stats fetch for every registered device, in the
-     * background, and updates the list as each one finishes. Unlike the
+     * background, and updates the list as each one finishes. Only called
+     * from the swipe-to-refresh gesture — the app never fetches on its own
+     * just from being opened or resumed (see onResume() above). Unlike the
      * widget (which only fetches for devices it's actually configured to
-     * watch), the app fetches for every device every time this screen
-     * becomes visible, since its whole purpose here is showing "everything,
-     * right now" — see StatsFormat.buildAllStatRows(). Every fetch goes
-     * through DeviceStatsCache (the same one the widget uses), so whichever
-     * of the app or a widget fetches most recently is what both end up
-     * showing — there's no separate, independently-fetched copy anymore.
+     * watch), this always fetches every registered device, since its whole
+     * purpose here is showing "everything, right now" — see
+     * StatsFormat.buildAllStatRows(). Every fetch goes through
+     * DeviceStatsCache (the same one the widget uses), so whichever of the
+     * app or a widget fetches most recently is what both end up showing —
+     * there's no separate, independently-fetched copy anymore.
      */
     private fun refreshDeviceStats(devices: List<Device>, onComplete: () -> Unit = {}) {
         // Tracks how many of the devices' background fetches are still in
