@@ -38,6 +38,10 @@ class MainActivity : AppCompatActivity() {
     // draws a row — a device with no entry yet just shows a loading placeholder.
     private val deviceStats = mutableMapOf<String, CharSequence>()
 
+    // The last-fetched-at millis for each device, keyed the same way as
+    // deviceStats above — feeds DeviceAdapter's "Updated ..." line per row.
+    private val deviceUpdated = mutableMapOf<String, Long>()
+
     /**
      * onCreate() is called once by Android when this screen is first being built,
      * before the user ever sees it. This is where we set up everything the screen
@@ -70,7 +74,8 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Removed ${device.name}", Toast.LENGTH_SHORT).show()
             },
             onEdit = { device -> showDeviceDialog(device) },
-            statsFor = { device -> deviceStats[device.id] }
+            statsFor = { device -> deviceStats[device.id] },
+            updatedFor = { device -> deviceUpdated[device.id] }
         )
         // Hook the adapter up to the actual ListView from the layout so it starts
         // drawing rows.
@@ -86,7 +91,10 @@ class MainActivity : AppCompatActivity() {
         // true; we flip it back off once every device's fetch has finished.
         swipeRefresh = findViewById(R.id.swipeRefresh)
         swipeRefresh.setOnRefreshListener {
-            refreshDeviceStats(DeviceStore.loadDevices(this)) { swipeRefresh.isRefreshing = false }
+            refreshDeviceStats(DeviceStore.loadDevices(this)) {
+                swipeRefresh.isRefreshing = false
+                SysMonWidgetProvider.repaintAllWidgets(this)
+            }
         }
     }
 
@@ -110,11 +118,17 @@ class MainActivity : AppCompatActivity() {
             val cached = DeviceStatsCache.read(this, device.id)
             if (cached.json != null) {
                 deviceStats[device.id] = StatsFormat.joinRows(StatsFormat.buildAllStatRows(cached.json, cached.reachable))
+                deviceUpdated[device.id] = cached.fetchedAt
             }
         }
         adapter.notifyDataSetChanged()
 
-        refreshDeviceStats(devices)
+        // Repaint any placed widgets from this same cache too, in case a
+        // widget's own last update predates whatever's now showing here
+        // (e.g. the app was opened right after being installed/updated).
+        SysMonWidgetProvider.repaintAllWidgets(this)
+
+        refreshDeviceStats(devices) { SysMonWidgetProvider.repaintAllWidgets(this) }
     }
 
     /**
@@ -156,6 +170,7 @@ class MainActivity : AppCompatActivity() {
                 // ask the adapter to redraw.
                 runOnUiThread {
                     deviceStats[device.id] = text
+                    if (result.fetchedAt > 0) deviceUpdated[device.id] = result.fetchedAt
                     adapter.notifyDataSetChanged()
                     if (remaining.decrementAndGet() == 0) onComplete()
                 }

@@ -29,6 +29,11 @@ import android.widget.TextView
  *                     address. Left null (the default) on screens that shouldn't
  *                     show live stats at all — e.g. the widget's device-picker
  *                     list, which is just choosing a device, not monitoring one.
+ * @param updatedFor   given a Device, returns the millis timestamp of its last
+ *                     fetch (or null before the first one has completed) — shown
+ *                     as a small "Updated ..." line, same wording/format as the
+ *                     widget. Left null (the default) alongside statsFor on
+ *                     screens that don't show live stats at all.
  */
 class DeviceAdapter(
     private val context: Context,
@@ -36,7 +41,8 @@ class DeviceAdapter(
     private val showDelete: Boolean,
     private val onDelete: ((Device) -> Unit)? = null,
     private val onEdit: ((Device) -> Unit)? = null,
-    private val statsFor: ((Device) -> CharSequence?)? = null
+    private val statsFor: ((Device) -> CharSequence?)? = null,
+    private val updatedFor: ((Device) -> Long?)? = null
 ) : BaseAdapter() {
 
     /**
@@ -104,6 +110,15 @@ class DeviceAdapter(
             statsText.text = statsFor.invoke(device) ?: context.getString(R.string.loading_stats)
         } else {
             statsText.visibility = View.GONE
+        }
+
+        val updatedText = view.findViewById<TextView>(R.id.deviceUpdatedText)
+        val updatedAt = updatedFor?.invoke(device)
+        if (updatedAt != null && updatedAt > 0) {
+            updatedText.visibility = View.VISIBLE
+            updatedText.text = "Updated ${StatsFormat.timestampString(updatedAt)}"
+        } else {
+            updatedText.visibility = View.GONE
         }
         return view
     }

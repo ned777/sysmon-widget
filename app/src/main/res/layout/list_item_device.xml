@@ -61,6 +61,22 @@
             android:lineSpacingExtra="2dp"
             android:textColor="@color/retro_white"
             android:text="" />
+
+        <!--
+          "Updated <date>, <time> <timezone>" — same format/wording as the
+          widget's own updatedText, so the app and widget read consistently.
+          Set in code via DeviceAdapter.kt; left GONE until there's an actual
+          fetch timestamp to show (e.g. still loading on first launch).
+        -->
+        <TextView
+            android:id="@+id/deviceUpdatedText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textSize="11sp"
+            android:textColor="@color/retro_magenta"
+            android:visibility="gone"
+            android:text="" />
     </LinearLayout>
 
     <!--

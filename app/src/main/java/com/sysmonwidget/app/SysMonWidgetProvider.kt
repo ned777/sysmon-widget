@@ -9,9 +9,6 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.widget.RemoteViews
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 /**
  * This is the "brain" of the home-screen widget: an AppWidgetProvider. It is NOT
@@ -39,6 +36,15 @@ class SysMonWidgetProvider : AppWidgetProvider() {
         // prefix ours with our own package name so it can never collide with a
         // built-in system action.
         const val ACTION_REFRESH = "com.sysmonwidget.app.ACTION_REFRESH"
+
+        // Like ACTION_REFRESH, but repaints every widget from whatever is
+        // ALREADY sitting in DeviceStatsCache instead of making a fresh
+        // network call — used when the app itself just fetched new data (on
+        // open, or via pull-to-refresh) so the home-screen widget picks up
+        // those same numbers immediately instead of waiting for its own next
+        // tap. Keeping this separate from ACTION_REFRESH avoids doubling up
+        // network requests every time the app refreshes.
+        const val ACTION_REPAINT = "com.sysmonwidget.app.ACTION_REPAINT"
         private const val PREFS_NAME = "sysmon"
 
         /**
@@ -49,6 +55,16 @@ class SysMonWidgetProvider : AppWidgetProvider() {
          */
         fun refreshAllWidgets(context: Context) {
             val intent = Intent(context, SysMonWidgetProvider::class.java).setAction(ACTION_REFRESH)
+            context.sendBroadcast(intent)
+        }
+
+        /**
+         * Sends the cache-only repaint broadcast described above. Call this
+         * after the APP finishes its own fetch(es) so any placed widgets stay
+         * in sync without each one separately hitting the network again.
+         */
+        fun repaintAllWidgets(context: Context) {
+            val intent = Intent(context, SysMonWidgetProvider::class.java).setAction(ACTION_REPAINT)
             context.sendBroadcast(intent)
         }
     }
@@ -93,17 +109,21 @@ class SysMonWidgetProvider : AppWidgetProvider() {
      * right here).
      */
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action == ACTION_REFRESH) {
+        if (intent.action == ACTION_REFRESH || intent.action == ACTION_REPAINT) {
+            // ACTION_REFRESH fetches fresh data over the network; ACTION_REPAINT
+            // just redraws from whatever's already cached (see the companion
+            // object above for why the app fires the latter after its own fetches).
+            val forceFetch = intent.action == ACTION_REFRESH
             val pending = goAsync()
             Thread {
                 try {
                     val manager = AppWidgetManager.getInstance(context)
                     // Ask Android for the ids of every SysMon widget currently
                     // placed anywhere on this phone, then refresh all of them —
-                    // ACTION_REFRESH doesn't come with specific widget ids
-                    // attached the way onUpdate()'s appWidgetIds does.
+                    // neither action comes with specific widget ids attached
+                    // the way onUpdate()'s appWidgetIds does.
                     val ids = manager.getAppWidgetIds(ComponentName(context, SysMonWidgetProvider::class.java))
-                    ids.forEach { updateOneWidget(context, manager, it) }
+                    ids.forEach { updateOneWidget(context, manager, it, forceFetch) }
                 } finally {
                     pending.finish()
                 }
@@ -142,7 +162,7 @@ class SysMonWidgetProvider : AppWidgetProvider() {
      * that make it show up correctly on the home screen. This is the heart of the
      * whole app — almost everything else exists to support this one function.
      */
-    private fun updateOneWidget(context: Context, manager: AppWidgetManager, id: Int) {
+    private fun updateOneWidget(context: Context, manager: AppWidgetManager, id: Int, forceFetch: Boolean = true) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
         // Start building a fresh RemoteViews from our widget's XML layout. Every
@@ -201,10 +221,15 @@ class SysMonWidgetProvider : AppWidgetProvider() {
         // not by this specific widget) is what keeps the app and every widget
         // pointed at the same device looking at the exact same fetched data,
         // instead of each independently polling and caching on its own.
-        val result = DeviceStatsCache.fetch(context, device)
+        //
+        // When forceFetch is false (an ACTION_REPAINT), we deliberately skip
+        // the network call and just read what's already cached — the app is
+        // what just fetched it, we're only here to redraw with those same
+        // numbers.
+        val result = if (forceFetch) DeviceStatsCache.fetch(context, device) else DeviceStatsCache.read(context, device.id)
         if (result.reachable) {
             views.setTextViewText(R.id.titleText, device.name)
-            views.setTextViewText(R.id.updatedText, "Updated ${timestampString(result.fetchedAt)}")
+            views.setTextViewText(R.id.updatedText, "Updated ${StatsFormat.timestampString(result.fetchedAt)}")
         } else if (result.json != null) {
             // We have stale-but-real numbers to show — the stats list itself
             // will keep displaying them (StatsRemoteViewsFactory reads from
@@ -213,7 +238,7 @@ class SysMonWidgetProvider : AppWidgetProvider() {
             views.setTextViewText(R.id.titleText, device.name)
             views.setTextViewText(
                 R.id.updatedText,
-                "${context.getString(R.string.widget_unreachable)} — last ${timestampString(result.fetchedAt)}"
+                "${context.getString(R.string.widget_unreachable)} — last ${StatsFormat.timestampString(result.fetchedAt)}"
             )
         } else {
             // We've NEVER successfully reached this device — nothing to fall
@@ -260,13 +285,6 @@ class SysMonWidgetProvider : AppWidgetProvider() {
         }
         views.setRemoteAdapter(R.id.statsList, serviceIntent)
     }
-
-    // Formats a timestamp with date, 24-hour clock, and timezone abbreviation,
-    // e.g. "Aug 21, 14:32 PDT" — the timezone is included so a glance at the
-    // widget still makes sense after traveling somewhere with a different
-    // local time than wherever the monitored device itself sits.
-    private fun timestampString(millis: Long): String =
-        SimpleDateFormat("MMM d, HH:mm zzz", Locale.getDefault()).format(Date(millis))
 
     // device.address is stored as "ip:port" (e.g. "192.168.1.50:8765") — for
     // display next to the title we only want the ip part, so we cut the string

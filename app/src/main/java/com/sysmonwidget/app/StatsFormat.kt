@@ -8,6 +8,9 @@ import android.text.Spanned
 import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
 import org.json.JSONObject
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 /**
  * StatsFormat turns the raw JSON that the Python agent sends (numbers like
@@ -209,6 +212,16 @@ object StatsFormat {
         if (inTok == 0L && outTok == 0L) return null
         return boldLabel(label, "${formatTokens(inTok)} in / ${formatTokens(outTok)} out")
     }
+
+    /**
+     * Formats a timestamp with date, 24-hour clock, and timezone abbreviation,
+     * e.g. "Aug 21, 14:32 PDT" — shared by the widget's "Updated" line and the
+     * app's per-device row, so both show a last-fetched time you can still
+     * make sense of after traveling somewhere with a different local time
+     * than wherever the monitored device itself sits.
+     */
+    fun timestampString(millis: Long): String =
+        SimpleDateFormat("MMM d, HH:mm zzz", Locale.getDefault()).format(Date(millis))
 
     /**
      * Shrinks a raw token count into a compact human-readable string:
