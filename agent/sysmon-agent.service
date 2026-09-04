@@ -4,10 +4,9 @@ After=network.target
 
 [Service]
 Type=simple
-User=REPLACE_WITH_YOUR_USERNAME
 ExecStart=/usr/bin/python3 REPLACE_WITH_PATH_TO/monitor_agent.py
 Restart=on-failure
 Environment=MONITOR_PORT=8765
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target

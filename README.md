@@ -90,25 +90,27 @@ cd agent
 Override the port with `MONITOR_PORT`. Run one instance per machine you
 want to monitor.
 
-### Running it as a system service (survives logout/reboot)
+### Running it as a service (survives logout/reboot)
 
-Running it manually in a terminal only lasts as long as that session. To
-have it start at boot and keep running whether or not anyone is logged in
-— e.g. so it comes back on its own after a power outage — install
-`agent/sysmon-agent.service` as a **system-level** (not `--user`) systemd
-unit:
+Running it manually in a terminal only lasts as long as that session — after
+a reboot (e.g. a power outage) it won't come back and the widget will show
+the device as offline. To have it start at boot and keep running whether or
+not anyone is logged in, install `agent/sysmon-agent.service` as a
+`systemd --user` unit:
 
 ```sh
-sudo cp agent/sysmon-agent.service /etc/systemd/system/sysmon-agent.service
-sudo nano /etc/systemd/system/sysmon-agent.service   # fill in your username + the real path to monitor_agent.py
-sudo systemctl daemon-reload
-sudo systemctl enable --now sysmon-agent
+mkdir -p ~/.config/systemd/user
+cp agent/sysmon-agent.service ~/.config/systemd/user/sysmon-agent.service
+sed -i "s#REPLACE_WITH_PATH_TO#$(pwd)/agent#" ~/.config/systemd/user/sysmon-agent.service
+systemctl --user daemon-reload
+systemctl --user enable --now sysmon-agent
+loginctl enable-linger "$USER"   # let it start at boot without a login session
 ```
 
-`WantedBy=multi-user.target` + `enable` means it starts during normal boot,
-independent of any user session — no login required, and `Restart=on-failure`
-brings it back if it ever crashes. Check on it with
-`sudo systemctl status sysmon-agent` or `journalctl -u sysmon-agent -f`.
+`enable-linger` + `enable --now` means it starts during normal boot even if
+you never log in, and `Restart=on-failure` brings it back if it ever
+crashes. Check on it with `systemctl --user status sysmon-agent` or
+`journalctl --user -u sysmon-agent -f`.
 
 This isn't installed automatically; do it per machine you want always-on
 monitoring for. (Claude Code doesn't need to be installed on a monitored
