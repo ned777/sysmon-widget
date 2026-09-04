@@ -1,0 +1,11 @@
+[Unit]
+Description=Notify via Telegram whether the sysmon agent came back up after boot
+After=network-online.target sysmon-agent.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 REPLACE_WITH_PATH_TO/boot_notify.py
+
+[Install]
+WantedBy=default.target

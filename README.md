@@ -107,6 +107,24 @@ systemctl --user enable --now sysmon-agent
 loginctl enable-linger "$USER"   # let it start at boot without a login session
 ```
 
+### Getting a heads-up after a reboot (optional)
+
+Even with the service above, you'd only find out it's back by opening the
+widget. `agent/sysmon-boot-notify.service` is a companion oneshot unit that
+runs once per boot, checks `http://127.0.0.1:8765/stats` (retrying for ~30s
+in case the agent is still starting), and sends a Telegram message saying
+whether the agent came back up or not — so you know either way, without
+having to log in or check the widget. It reads the bot token/chat ID from
+`~/.config/telegram-bot/config.json` (the same config used by an existing
+Telegram relay bot on this machine), so it assumes that file already exists.
+
+```sh
+cp agent/sysmon-boot-notify.service ~/.config/systemd/user/sysmon-boot-notify.service
+sed -i "s#REPLACE_WITH_PATH_TO#$(pwd)/agent#" ~/.config/systemd/user/sysmon-boot-notify.service
+systemctl --user daemon-reload
+systemctl --user enable sysmon-boot-notify   # don't --now: it's meant to fire on boot, not immediately
+```
+
 `enable-linger` + `enable --now` means it starts during normal boot even if
 you never log in, and `Restart=on-failure` brings it back if it ever
 crashes. Check on it with `systemctl --user status sysmon-agent` or
@@ -148,6 +166,8 @@ agent/
   monitor_agent.py             — stdlib-only HTTP server: GET /stats
   run_agent.sh                  — convenience launcher
   sysmon-agent.service          — optional systemd --user unit (not installed)
+  boot_notify.py                — Telegrams whether the agent came back up, run once per boot
+  sysmon-boot-notify.service    — optional systemd --user unit for boot_notify.py (not installed)
 app/src/main/java/com/sysmonwidget/app/
   Device.kt                     — Device model + SharedPreferences-backed store
   DeviceAdapter.kt               — list adapter shared by the manager screen and picker
