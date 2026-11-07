@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- GENERATED: widget_background_r29 pulled in 4dp from every edge. Picked at runtime by WidgetCorners.kt.
+     A layer-list item inset (not <inset>) so it adds no padding and the layout keeps its own. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:drawable="@drawable/widget_background_r29"
+        android:left="4dp"
+        android:top="4dp"
+        android:right="4dp"
+        android:bottom="4dp" />
+</layer-list>

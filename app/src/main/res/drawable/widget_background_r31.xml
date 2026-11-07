@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- GENERATED copy of widget_background.xml with a fixed 31dp corner radius.
-     Picked at runtime by WidgetCorners.kt; edit widget_background.xml and regenerate, not this file. -->
+     Wrapped by widget_background_r31_inset.xml; edit widget_background.xml and regenerate, not this file. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <shape android:shape="rectangle">

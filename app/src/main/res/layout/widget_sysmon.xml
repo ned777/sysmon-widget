@@ -17,11 +17,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@drawable/widget_background"
-    android:paddingTop="16dp"
-    android:paddingBottom="16dp"
-    android:paddingStart="16dp"
-    android:paddingEnd="16dp">
+    android:background="@drawable/widget_background_r26_inset"
+    android:paddingTop="20dp"
+    android:paddingBottom="14dp"
+    android:paddingStart="20dp"
+    android:paddingEnd="20dp">
 
     <!--
       Title row: the device name on the left (growing to fill available space,
@@ -80,7 +80,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="2dp"
         android:divider="@null"
         android:scrollbars="none" />
 

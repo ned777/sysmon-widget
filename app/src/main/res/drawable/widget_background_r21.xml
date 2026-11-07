@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- GENERATED copy of widget_background.xml with a fixed 21dp corner radius.
+     Wrapped by widget_background_r21_inset.xml; edit widget_background.xml and regenerate, not this file. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:startColor="@color/sunset_top"
+                android:centerColor="@color/sunset_mid"
+                android:endColor="@color/sunset_bottom" />
+            <corners android:radius="21dp" />
+        </shape>
+    </item>
+    <item android:drawable="@drawable/retro_grid_overlay" />
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/retro_scrim" />
+            <corners android:radius="21dp" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <stroke
+                android:width="3dp"
+                android:color="@color/retro_cyan" />
+            <corners android:radius="21dp" />
+        </shape>
+    </item>
+</layer-list>
