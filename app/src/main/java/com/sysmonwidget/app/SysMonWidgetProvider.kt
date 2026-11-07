@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
+import android.os.Bundle
 import android.widget.RemoteViews
 
 /**
@@ -146,6 +147,19 @@ class SysMonWidgetProvider : AppWidgetProvider() {
      * stats live in DeviceStatsCache, keyed by device id, and are left alone
      * since the app (or another widget) may still be using that same device.
      */
+    // The launcher re-scales the widget when the home-screen grid changes; redraw
+    // (from cache, no network fetch) so the border radius follows the new scale.
+    override fun onAppWidgetOptionsChanged(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int, newOptions: Bundle) {
+        val pending = goAsync()
+        Thread {
+            try {
+                updateOneWidget(context, appWidgetManager, appWidgetId, forceFetch = false)
+            } finally {
+                pending.finish()
+            }
+        }.start()
+    }
+
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val editor = prefs.edit()
@@ -170,6 +184,7 @@ class SysMonWidgetProvider : AppWidgetProvider() {
         // cheap, disposable "instructions", not something we keep around and
         // mutate over time.
         val views = RemoteViews(context.packageName, R.layout.widget_sysmon)
+        WidgetCorners.apply(views, R.id.widgetRoot, manager, id)
 
         // Wires up the scrolling stats list to our RemoteViewsService factory
         // (see SysMonRemoteViewsService.kt) — see that file for why a widget list
