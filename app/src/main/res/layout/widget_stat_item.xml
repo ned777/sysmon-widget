@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  One cell of the widget's two-column stats grid — inflated per stat by
+  One row of the widget's stats list — inflated per stat by
   StatsRemoteViewsFactory.getViewAt(). A single line: short teal label on the
   left, compact white value right-aligned, and (for CPU / RAM / Disk / Temp) a
   thin 3dp usage bar underneath. There are three copies of the bar, one per

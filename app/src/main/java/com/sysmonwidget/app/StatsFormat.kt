@@ -13,7 +13,7 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * One stat for the widget's two-column grid: a short [label] ("CPU"), a compact
+ * One stat row for the widget: a short [label] ("CPU"), a compact
  * [value] ("12%" / "1.2/15GB"), and — for the usage-style stats — a 0..100
  * [percent] that drives the thin bar drawn under the row. [percent] is null
  * for stats with no natural "how full" (uptime, load, Claude tokens, status).
@@ -45,7 +45,7 @@ object StatsFormat {
     const val KEY_CLAUDE_WEEKLY = "claude_weekly"
     const val KEY_STATUS = "status"
 
-    /** Every stat, in the order the widget grid shows them (left-to-right, top-to-bottom). */
+    /** Every stat, in the order the widget shows them, top to bottom. */
     val ALL_KEYS = listOf(
         KEY_CPU, KEY_RAM, KEY_STORAGE, KEY_TEMP, KEY_LOAD, KEY_UPTIME,
         KEY_CLAUDE_DAILY, KEY_CLAUDE_WEEKLY, KEY_STATUS

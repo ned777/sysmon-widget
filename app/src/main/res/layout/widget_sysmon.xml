@@ -52,10 +52,9 @@
     </LinearLayout>
 
     <!--
-      The stats, as a two-column grid (CPU | RAM, Disk | Temp, Load | Uptime,
-      ...) so a wide widget fills its width instead of leaving a column of
-      empty space to the right of short one-line rows. Rows come from a
-      RemoteViewsService (SysMonRemoteViewsService.kt) — see
+      The stats, one per line (RAM, then Disk, then Status, ...), each with
+      its value right-aligned and a usage bar where it applies. Rows come from
+      a RemoteViewsService (SysMonRemoteViewsService.kt) — see
       SysMonWidgetProvider.attachListAdapter(). 0dp + weight 1 = fill whatever
       height the title and footer leave; scrolls if there are more stats than fit.
     -->
@@ -65,8 +64,7 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:layout_marginTop="6dp"
-        android:numColumns="2"
-        android:horizontalSpacing="16dp"
+        android:numColumns="1"
         android:verticalSpacing="6dp"
         android:stretchMode="columnWidth"
         android:listSelector="@android:color/transparent"

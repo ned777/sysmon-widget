@@ -301,12 +301,6 @@ class SysMonWidgetProvider : AppWidgetProvider() {
         }
         views.setRemoteAdapter(R.id.statsList, serviceIntent)
 
-        // Two stat columns when the widget is wide enough, one when it's been
-        // squeezed down to a narrow size (short labels+values need ~110dp each).
-        val minWidthDp = AppWidgetManager.getInstance(context).getAppWidgetOptions(id)
-            .getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 250)
-        views.setInt(R.id.statsList, "setNumColumns", if (minWidthDp < 220) 1 else 2)
-
         // Taps on a grid cell go to the grid, not the root view, so give the
         // grid the same refresh action (each cell sets an empty fill-in intent
         // in StatsRemoteViewsFactory.getViewAt()). Must be MUTABLE so the
