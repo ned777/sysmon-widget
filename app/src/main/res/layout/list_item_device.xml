@@ -13,80 +13,89 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="top"
+        android:orientation="vertical"
         android:background="@drawable/app_card_background"
         android:paddingTop="14dp"
         android:paddingBottom="14dp"
         android:paddingStart="18dp"
-        android:paddingEnd="8dp">
+        android:paddingEnd="18dp">
 
+        <!-- Header row: name + IP on the left, edit/delete on the right, so the
+             stat rows below get the card's full width instead of wrapping. -->
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
-            <TextView
-                android:id="@+id/deviceNameText"
-                android:layout_width="match_parent"
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:textStyle="bold"
-                android:textSize="17sp"
-                android:textAllCaps="true"
-                android:letterSpacing="0.06"
-                android:textColor="@color/retro_cyan"
-                android:text="--" />
+                android:layout_weight="1"
+                android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/deviceAddressText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:textSize="12sp"
-                android:textColor="@color/retro_white_dim"
-                android:text="--" />
+                <TextView
+                    android:id="@+id/deviceNameText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textStyle="bold"
+                    android:textSize="17sp"
+                    android:textAllCaps="true"
+                    android:letterSpacing="0.06"
+                    android:textColor="@color/retro_cyan"
+                    android:text="--" />
 
-            <!-- Every stat this device reports; filled live by DeviceAdapter.kt. -->
-            <TextView
-                android:id="@+id/deviceStatsText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:textSize="13sp"
-                android:lineSpacingExtra="4dp"
-                android:textColor="@color/retro_white"
-                android:text="" />
+                <TextView
+                    android:id="@+id/deviceAddressText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:textSize="12sp"
+                    android:textColor="@color/retro_white_dim"
+                    android:text="--" />
+            </LinearLayout>
 
-            <!-- "Updated <date>, <time>" — GONE until there's a fetch timestamp. -->
-            <TextView
-                android:id="@+id/deviceUpdatedText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:textSize="11sp"
-                android:textColor="@color/retro_white_dim"
-                android:visibility="gone"
-                android:text="" />
+            <!-- Edit (pencil) — only VISIBLE when DeviceAdapter got an onEdit callback. -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/editButton"
+                style="@style/Widget.SysMonWidget.IconButton"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:textColor="@color/retro_teal"
+                android:text="✎" />
+
+            <!-- Delete (X) — only VISIBLE on the main device-management screen. -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/deleteButton"
+                style="@style/Widget.SysMonWidget.IconButton"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_marginEnd="-10dp"
+                android:textColor="@color/retro_red"
+                android:text="✕" />
         </LinearLayout>
 
-        <!-- Edit (pencil) — only VISIBLE when DeviceAdapter got an onEdit callback. -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/editButton"
-            style="@style/Widget.SysMonWidget.IconButton"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:textColor="@color/retro_teal"
-            android:text="✎" />
+        <!-- Every stat this device reports; filled live by DeviceAdapter.kt. -->
+        <TextView
+            android:id="@+id/deviceStatsText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textSize="13sp"
+            android:lineSpacingExtra="4dp"
+            android:textColor="@color/retro_white"
+            android:text="" />
 
-        <!-- Delete (X) — only VISIBLE on the main device-management screen. -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/deleteButton"
-            style="@style/Widget.SysMonWidget.IconButton"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:textColor="@color/retro_red"
-            android:text="✕" />
+        <!-- "Updated <date>, <time>" — GONE until there's a fetch timestamp. -->
+        <TextView
+            android:id="@+id/deviceUpdatedText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textSize="11sp"
+            android:textColor="@color/retro_white_dim"
+            android:visibility="gone"
+            android:text="" />
 
     </LinearLayout>
 </FrameLayout>
