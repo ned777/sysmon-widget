@@ -147,14 +147,15 @@ object StatsFormat {
     private fun percentOf(used: Double, total: Double): Int? =
         if (total > 0) (used * 100 / total).toPercent() else null
 
-    /** Compact "used/total" with one unit, e.g. "1.2/15GB" or "287/3796MB". */
+    /** Compact "used/total" in GB, e.g. "1.2/15GB" or "0.3/3.7GB". */
     private fun memoryRange(usedMb: Int, totalMb: Int): String {
-        if (totalMb >= 4096) {
-            val used = usedMb / 1024.0
-            val usedStr = if (used < 10) "%.1f".format(used) else "%.0f".format(used)
-            return "$usedStr/${Math.round(totalMb / 1024.0)}GB"
+        fun gb(mb: Int): String {
+            val g = mb / 1024.0
+            return if (g < 10) "%.1f".format(g) else "%.0f".format(g)
         }
-        return "$usedMb/${totalMb}MB"
+        // Always GB with at most one decimal ("0.3/3.7GB", "3.9/15GB") so the
+        // value fits the widget's fixed-width value column.
+        return "${gb(usedMb)}/${gb(totalMb)}GB"
     }
 
     private fun claudeRow(label: String, tokens: JSONObject): StatRow? {

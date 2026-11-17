@@ -12,6 +12,9 @@
   agent doesn't report (older agents have no CPU/temp/uptime), are set GONE in
   code. Claude token usage lives in the app only.
 
+  Label (40dp) and value (84dp) columns are FIXED widths so every bar gets
+  exactly the same length no matter how long its value text is.
+
   Each bar exists three times (Ok/Warn/Hot = teal/yellow/red) because
   RemoteViews can't recolor a ProgressBar on older Android — the provider
   shows exactly one of them.
@@ -140,9 +143,8 @@
 
             <TextView
                 android:id="@+id/ramValue"
-                android:layout_width="wrap_content"
+                android:layout_width="84dp"
                 android:layout_height="wrap_content"
-                android:minWidth="76dp"
                 android:includeFontPadding="false"
                 android:gravity="end"
                 android:textColor="@color/retro_white"
@@ -208,9 +210,8 @@
 
             <TextView
                 android:id="@+id/diskValue"
-                android:layout_width="wrap_content"
+                android:layout_width="84dp"
                 android:layout_height="wrap_content"
-                android:minWidth="76dp"
                 android:includeFontPadding="false"
                 android:gravity="end"
                 android:textColor="@color/retro_white"
