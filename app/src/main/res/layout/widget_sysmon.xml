@@ -1,16 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  This is the widget's OWN layout — what actually gets drawn on the home screen.
-  It's referenced from two places: sysmon_widget_info.xml's
-  android:initialLayout, and directly by name in
-  SysMonWidgetProvider.updateOneWidget() via RemoteViews(context.packageName,
-  R.layout.widget_sysmon).
+  The home-screen widget. Fixed rows, no scrolling list: the device name, then
+  the IP address, then RAM / Disk each on ONE line (teal label, usage bar, white value), then
+  a single summary line (temperature · load · uptime), then the refresh strip.
 
-  IMPORTANT: widget layouts can ONLY use a small whitelist of View types that
-  Android's RemoteViews system knows how to recreate inside the separate
-  launcher process — things like LinearLayout, TextView, ListView, ImageView,
-  Button. You can't drop in arbitrary custom Views the way you can in a normal
-  Activity layout.
+  Taps (wired in SysMonWidgetProvider.updateOneWidget(), same as Weather
+  Donkey): anywhere on the widget opens the app; the bottom strip ("Tap below
+  to refresh" + IP + status) re-fetches the stats instead.
+
+  Rows for stats that are switched off for this widget, or that the device's
+  agent doesn't report (older agents have no CPU/temp/uptime), are set GONE in
+  code. Claude token usage lives in the app only.
+
+  Each bar exists three times (Ok/Warn/Hot = teal/yellow/red) because
+  RemoteViews can't recolor a ProgressBar on older Android — the provider
+  shows exactly one of them.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widgetRoot"
@@ -23,79 +27,267 @@
     android:paddingStart="20dp"
     android:paddingEnd="20dp">
 
-    <!--
-      Title row: the device name, centered, white like the Weather widget's
-      city name. (The IP lives in the footer, above the status line.)
-      Text set in code by SysMonWidgetProvider.updateOneWidget().
-    -->
-    <LinearLayout
+    <!-- Device name, centered, white like the Weather widget's city name. -->
+    <TextView
+        android:id="@+id/titleText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:includeFontPadding="false"
+        android:textColor="@color/retro_white"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textAllCaps="true"
+        android:letterSpacing="0.08"
+        android:gravity="center"
+        android:singleLine="true"
+        android:ellipsize="end"
+        android:text="--" />
 
-        <TextView
-            android:id="@+id/titleText"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textColor="@color/retro_white"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textAllCaps="true"
-            android:letterSpacing="0.08"
-            android:gravity="center"
-            android:singleLine="true"
-            android:ellipsize="end"
-            android:text="--" />
-
-    </LinearLayout>
-
-    <!--
-      The stats, one per line (RAM, then Disk, then Status, ...), each with
-      its value right-aligned and a usage bar where it applies. Rows come from
-      a RemoteViewsService (SysMonRemoteViewsService.kt) — see
-      SysMonWidgetProvider.attachListAdapter(). 0dp + weight 1 = fill whatever
-      height the title and footer leave; scrolls if there are more stats than fit.
-    -->
-    <GridView
-        android:id="@+id/statsList"
+    <!-- The stats, vertically centered in whatever height is left over. -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_marginTop="6dp"
-        android:numColumns="1"
-        android:verticalSpacing="6dp"
-        android:stretchMode="columnWidth"
-        android:listSelector="@android:color/transparent"
-        android:scrollbars="none" />
+        android:orientation="vertical"
+        android:gravity="center_vertical">
 
-    <!--
-      Footer, white and centered: the device's IP, then the status line —
-      "Updated <time>" on a successful refresh, or "Unreachable — last <time>"
-      if the device couldn't be reached. Both set in code by
-      SysMonWidgetProvider.updateOneWidget().
-    -->
-    <TextView
-        android:id="@+id/ipText"
+        <!-- "IP Address   192.168.1.20" — same size/colors as the RAM/Disk rows. -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:includeFontPadding="false"
+                android:textColor="@color/retro_teal"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:singleLine="true"
+                android:text="@string/widget_ip_label" />
+
+            <TextView
+                android:id="@+id/ipText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:gravity="end"
+                android:textColor="@color/retro_white"
+                android:textSize="13sp"
+                android:singleLine="true"
+                android:text="" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/ramRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp">
+
+            <TextView
+                android:layout_width="40dp"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:textColor="@color/retro_teal"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:singleLine="true"
+                android:text="RAM" />
+
+            <ProgressBar
+                android:id="@+id/ramBarOk"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_width="0dp"
+                android:layout_height="6dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:max="100"
+                android:progressDrawable="@drawable/widget_bar_ok"
+                android:visibility="visible" />
+
+            <ProgressBar
+                android:id="@+id/ramBarWarn"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_width="0dp"
+                android:layout_height="6dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:max="100"
+                android:progressDrawable="@drawable/widget_bar_warn"
+                android:visibility="gone" />
+
+            <ProgressBar
+                android:id="@+id/ramBarHot"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_width="0dp"
+                android:layout_height="6dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:max="100"
+                android:progressDrawable="@drawable/widget_bar_hot"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/ramValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="76dp"
+                android:includeFontPadding="false"
+                android:gravity="end"
+                android:textColor="@color/retro_white"
+                android:textSize="13sp"
+                android:singleLine="true"
+                android:text="--" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/diskRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp">
+
+            <TextView
+                android:layout_width="40dp"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:textColor="@color/retro_teal"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:singleLine="true"
+                android:text="Disk" />
+
+            <ProgressBar
+                android:id="@+id/diskBarOk"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_width="0dp"
+                android:layout_height="6dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:max="100"
+                android:progressDrawable="@drawable/widget_bar_ok"
+                android:visibility="visible" />
+
+            <ProgressBar
+                android:id="@+id/diskBarWarn"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_width="0dp"
+                android:layout_height="6dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:max="100"
+                android:progressDrawable="@drawable/widget_bar_warn"
+                android:visibility="gone" />
+
+            <ProgressBar
+                android:id="@+id/diskBarHot"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_width="0dp"
+                android:layout_height="6dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:max="100"
+                android:progressDrawable="@drawable/widget_bar_hot"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/diskValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="76dp"
+                android:includeFontPadding="false"
+                android:gravity="end"
+                android:textColor="@color/retro_white"
+                android:textSize="13sp"
+                android:singleLine="true"
+                android:text="--" />
+        </LinearLayout>
+
+        <!-- "Temp 57°C   Load 0.73   Up 2d 16h" — built in code, teal labels / white values. -->
+        <TextView
+            android:id="@+id/infoText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:includeFontPadding="false"
+            android:gravity="center"
+            android:textColor="@color/retro_white"
+            android:textSize="13sp"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:text="" />
+    </LinearLayout>
+
+    <!-- The refresh strip: tapping HERE fetches fresh stats; anywhere else opens
+         the app. While a fetch runs, the lines go INVISIBLE (keeping their
+         space) and "Updating…" shows in the same spot. -->
+    <FrameLayout
+        android:id="@+id/refreshArea"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:gravity="center"
-        android:textColor="@color/retro_white"
-        android:textSize="13sp"
-        android:singleLine="true"
-        android:text="" />
+        android:paddingTop="2dp"
+        android:paddingBottom="2dp">
 
-    <TextView
-        android:id="@+id/updatedText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="1dp"
-        android:gravity="center"
-        android:textColor="@color/retro_white"
-        android:textSize="13sp"
-        android:singleLine="true"
-        android:ellipsize="end"
-        android:text="" />
+        <LinearLayout
+            android:id="@+id/refreshLines"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tapRefreshText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:gravity="center"
+                android:textColor="@color/retro_cyan"
+                android:textStyle="bold"
+                android:textSize="10sp"
+                android:singleLine="true"
+                android:text="@string/widget_tap_refresh" />
+
+            <!-- "Online · Updated <time>" or "Unreachable — last <time>". -->
+            <TextView
+                android:id="@+id/updatedText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:gravity="center"
+                android:textColor="@color/retro_white"
+                android:textSize="13sp"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:text="" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/updatingText"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:textColor="@color/retro_cyan"
+            android:textStyle="bold"
+            android:textSize="15sp"
+            android:singleLine="true"
+            android:text="@string/widget_updating"
+            android:visibility="gone" />
+    </FrameLayout>
+
 </LinearLayout>

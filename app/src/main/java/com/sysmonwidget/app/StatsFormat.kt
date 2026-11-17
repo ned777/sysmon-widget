@@ -13,12 +13,13 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * One stat row for the widget: a short [label] ("CPU"), a compact
+ * One stat: a short [label] ("CPU"), a compact
  * [value] ("12%" / "1.2/15GB"), and — for the usage-style stats — a 0..100
- * [percent] that drives the thin bar drawn under the row. [percent] is null
+ * [percent] that drives the widget's usage bar. [percent] is null
  * for stats with no natural "how full" (uptime, load, Claude tokens, status).
+ * [detail] is extra text only the app's device cards show (e.g. "20 cores").
  */
-data class StatRow(val label: String, val value: String, val percent: Int? = null)
+data class StatRow(val label: String, val value: String, val percent: Int? = null, val detail: String? = null)
 
 /**
  * StatsFormat turns the raw JSON that the Python agent sends (numbers like
@@ -71,17 +72,23 @@ object StatsFormat {
     }
 
     /**
-     * The widget's rows: every enabled stat this device's agent actually
-     * reports. Stats an older agent doesn't send (cpu/temp/uptime) are simply
-     * skipped rather than shown as blanks, as is Claude usage with zero tokens.
+     * Which stats this widget instance shows, from what WidgetConfigActivity
+     * saved. Widgets set up before CPU/Temp/Load/Uptime existed get those
+     * switched on automatically (they never had the chance to pick them).
      */
-    fun buildStatRows(json: JSONObject, reachable: Boolean, enabledStats: Set<String>): List<StatRow> =
-        ALL_KEYS.filter { it in enabledStats }.mapNotNull { rowFor(it, json, reachable) }
+    fun enabledStatsFor(prefs: android.content.SharedPreferences, appWidgetId: Int): Set<String> {
+        val saved = prefs.getString("widget_${appWidgetId}_stats", null)
+        if (saved.isNullOrBlank()) return ALL_KEYS.toSet()
+        val keys = saved.split(",").toSet()
+        val version = prefs.getInt("widget_${appWidgetId}_stats_version", 1)
+        return if (version < STATS_PREF_VERSION) keys + KEYS_ADDED_V2 else keys
+    }
 
     /** Every stat the device reports, as "Label: value" lines for the app's device cards. */
     fun buildAllStatRows(json: JSONObject, reachable: Boolean): List<CharSequence> =
         ALL_KEYS.mapNotNull { rowFor(it, json, reachable) }.map { row ->
-            val value = if (row.percent != null && !row.value.contains("%")) "${row.value}  (${row.percent}%)" else row.value
+            var value = if (row.percent != null && !row.value.contains("%")) "${row.value}  (${row.percent}%)" else row.value
+            if (row.detail != null) value += " · ${row.detail}"
             boldLabel("${longLabel(row.label)}: ", value)
         }
 
@@ -101,11 +108,11 @@ object StatsFormat {
         else -> short
     }
 
-    private fun rowFor(key: String, json: JSONObject, reachable: Boolean): StatRow? = try {
+    fun rowFor(key: String, json: JSONObject, reachable: Boolean): StatRow? = try {
         when (key) {
             KEY_CPU -> json.optJSONObject("cpu")?.let { cpu ->
                 val pct = cpu.getDouble("percent")
-                StatRow("CPU", "%.0f%% · %dc".format(pct, cpu.optInt("cores", 1)), pct.toPercent())
+                StatRow("CPU", "%.0f%%".format(pct), pct.toPercent(), detail = "${cpu.optInt("cores", 1)} cores")
             }
             KEY_RAM -> json.optJSONObject("ram")?.let { ram ->
                 val used = ram.getInt("used_mb"); val total = ram.getInt("total_mb")

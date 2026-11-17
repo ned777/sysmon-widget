@@ -71,20 +71,6 @@
         </activity>
 
         <!--
-          The service backing the widget's scrolling stats list (see
-          SysMonRemoteViewsService.kt). android:permission="BIND_REMOTEVIEWS" is
-          a REQUIRED security restriction for this exact kind of service — it
-          means only the system itself (specifically, the launcher acting on
-          the system's behalf) is allowed to bind to it, not just any app on
-          the phone. exported="false" additionally means no other app can even
-          attempt to start this service directly.
-        -->
-        <service
-            android:name=".SysMonRemoteViewsService"
-            android:permission="android.permission.BIND_REMOTEVIEWS"
-            android:exported="false" />
-
-        <!--
           The widget's "brain" (see SysMonWidgetProvider.kt). exported="false"
           means only broadcasts sent by our own app process reach it directly
           (though the OS itself is always allowed to deliver the standard

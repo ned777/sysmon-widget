@@ -7,8 +7,14 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.net.Uri
 import android.os.Bundle
+import android.graphics.Color
+import android.graphics.Typeface
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
+import android.text.style.StyleSpan
+import android.view.View
 import android.widget.RemoteViews
 
 /**
@@ -47,6 +53,7 @@ class SysMonWidgetProvider : AppWidgetProvider() {
         // network requests every time the app refreshes.
         const val ACTION_REPAINT = "com.sysmonwidget.app.ACTION_REPAINT"
         private const val PREFS_NAME = "sysmon"
+        private val TEAL = Color.parseColor("#00E0B8")
 
         /**
          * Sends a broadcast that every widget of ours will receive via
@@ -124,6 +131,7 @@ class SysMonWidgetProvider : AppWidgetProvider() {
                     // neither action comes with specific widget ids attached
                     // the way onUpdate()'s appWidgetIds does.
                     val ids = manager.getAppWidgetIds(ComponentName(context, SysMonWidgetProvider::class.java))
+                    if (forceFetch) ids.forEach { showUpdating(context, manager, it) }
                     ids.forEach { updateOneWidget(context, manager, it, forceFetch) }
                 } finally {
                     pending.finish()
@@ -186,31 +194,28 @@ class SysMonWidgetProvider : AppWidgetProvider() {
         // mutate over time.
         val views = RemoteViews(context.packageName, R.layout.widget_sysmon)
         WidgetCorners.apply(views, R.id.widgetRoot, manager, id)
+        // Launchers often REAPPLY a new RemoteViews onto the existing widget view
+        // (same layout id) rather than rebuilding it, so anything showUpdating()
+        // changed would stick unless we set it back explicitly here.
+        views.setViewVisibility(R.id.refreshLines, View.VISIBLE)
+        views.setViewVisibility(R.id.updatingText, View.GONE)
 
-        // Wires up the scrolling stats list to our RemoteViewsService factory
-        // (see SysMonRemoteViewsService.kt) — see that file for why a widget list
-        // needs this extra indirection instead of a normal adapter.
-        attachListAdapter(context, views, id)
-
-        // Since updatePeriodMillis is 0 (no automatic timer — see
-        // sysmon_widget_info.xml), the ONLY way this widget ever refreshes is
-        // when the user taps it. We make the entire widget root view clickable,
-        // and tapping it fires our own ACTION_REFRESH broadcast right back at
-        // this same receiver, which is what actually triggers a new fetch.
-        val refreshIntent = Intent(context, SysMonWidgetProvider::class.java).setAction(ACTION_REFRESH)
-        val pendingIntent = PendingIntent.getBroadcast(
-            context, 0, refreshIntent,
-            // FLAG_IMMUTABLE is required on modern Android for security reasons —
-            // it stops other apps from tampering with what this PendingIntent
-            // actually does after we've created it. FLAG_UPDATE_CURRENT means "if
-            // a matching PendingIntent already exists, just refresh its extras
-            // instead of creating a brand new one".
+        // Same split as Weather Donkey: tapping anywhere opens the app, tapping
+        // the bottom "Tap below to refresh" strip fetches fresh stats instead.
+        val openApp = PendingIntent.getActivity(
+            context, id,
+            Intent(context, MainActivity::class.java).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-        views.setOnClickPendingIntent(R.id.widgetRoot, pendingIntent)
+        views.setOnClickPendingIntent(R.id.widgetRoot, openApp)
+        // FLAG_IMMUTABLE is required on modern Android — it stops other apps from
+        // tampering with what this PendingIntent does after we've created it.
+        val refresh = PendingIntent.getBroadcast(
+            context, 0, Intent(context, SysMonWidgetProvider::class.java).setAction(ACTION_REFRESH),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        views.setOnClickPendingIntent(R.id.refreshArea, refresh)
 
-        // Which device (if any) has this specific widget been configured to
-        // watch? Each widget instance can point at a different device.
         val device = resolveDevice(context, prefs, id)
         if (device == null) {
             // This can happen right after the widget is placed but before its
@@ -219,8 +224,8 @@ class SysMonWidgetProvider : AppWidgetProvider() {
             views.setTextViewText(R.id.titleText, context.getString(R.string.widget_no_device))
             views.setTextViewText(R.id.ipText, "")
             views.setTextViewText(R.id.updatedText, "")
+            bindStats(views, null, emptySet())
             manager.updateAppWidget(id, views)
-            manager.notifyAppWidgetViewDataChanged(id, R.id.statsList)
             return
         }
 
@@ -245,7 +250,7 @@ class SysMonWidgetProvider : AppWidgetProvider() {
         val result = if (forceFetch) DeviceStatsCache.fetch(context, device) else DeviceStatsCache.read(context, device.id)
         if (result.reachable) {
             views.setTextViewText(R.id.titleText, device.name)
-            views.setTextViewText(R.id.updatedText, "Updated ${StatsFormat.timestampString(result.fetchedAt)}")
+            views.setTextViewText(R.id.updatedText, "Online · Updated ${StatsFormat.timestampString(result.fetchedAt)}")
         } else if (result.json != null) {
             // We have stale-but-real numbers to show — the stats list itself
             // will keep displaying them (StatsRemoteViewsFactory reads from
@@ -268,13 +273,8 @@ class SysMonWidgetProvider : AppWidgetProvider() {
 
         // Hand the finished RemoteViews to Android, which forwards it to the
         // launcher process to actually be drawn on the home screen.
+        bindStats(views, result.json, StatsFormat.enabledStatsFor(prefs, id))
         manager.updateAppWidget(id, views)
-
-        // Separately tell Android the LIST data might have changed too — this is
-        // what makes StatsRemoteViewsFactory.onDataSetChanged() run again and
-        // rebuild the row list from what we just saved to prefs above.
-        // updateAppWidget() alone does not automatically refresh list contents.
-        manager.notifyAppWidgetViewDataChanged(id, R.id.statsList)
     }
 
     /**
@@ -287,29 +287,60 @@ class SysMonWidgetProvider : AppWidgetProvider() {
     }
 
     /**
-     * Points the widget's scrolling list at our RemoteViewsService, so the
-     * launcher knows which factory to call into for rows. We have to package up
-     * an Intent carrying which widget id this is for, and (a slightly odd but
-     * required Android quirk) give the Intent a unique `data` Uri — without a
-     * unique Uri, widgets that are otherwise configured identically can end up
-     * incorrectly sharing the exact same cached list data.
+     * Fills the fixed RAM / Disk rows and the temp · load · uptime line.
+     * A row is hidden when its stat is switched off for this widget or the
+     * device's agent doesn't report it (older agents send no CPU/temp/uptime).
      */
-    private fun attachListAdapter(context: Context, views: RemoteViews, id: Int) {
-        val serviceIntent = Intent(context, SysMonRemoteViewsService::class.java).apply {
-            putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, id)
-            data = Uri.parse(toUri(Intent.URI_INTENT_SCHEME))
-        }
-        views.setRemoteAdapter(R.id.statsList, serviceIntent)
+    private fun bindStats(views: RemoteViews, json: org.json.JSONObject?, enabled: Set<String>) {
+        fun row(key: String) = if (json != null && key in enabled) StatsFormat.rowFor(key, json, true) else null
 
-        // Taps on a grid cell go to the grid, not the root view, so give the
-        // grid the same refresh action (each cell sets an empty fill-in intent
-        // in StatsRemoteViewsFactory.getViewAt()). Must be MUTABLE so the
-        // launcher can merge that fill-in into it.
-        val template = PendingIntent.getBroadcast(
-            context, 1, Intent(context, SysMonWidgetProvider::class.java).setAction(ACTION_REFRESH),
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
-        )
-        views.setPendingIntentTemplate(R.id.statsList, template)
+        bindBarRow(views, row(StatsFormat.KEY_RAM), R.id.ramRow, R.id.ramValue, R.id.ramBarOk, R.id.ramBarWarn, R.id.ramBarHot)
+        bindBarRow(views, row(StatsFormat.KEY_STORAGE), R.id.diskRow, R.id.diskValue, R.id.diskBarOk, R.id.diskBarWarn, R.id.diskBarHot)
+
+        val info = SpannableStringBuilder()
+        listOf(
+            row(StatsFormat.KEY_TEMP)?.let { "Temp" to it.value },
+            row(StatsFormat.KEY_LOAD)?.let { "Load" to it.value.substringBefore(" ") },
+            row(StatsFormat.KEY_UPTIME)?.let { "Up" to it.value }
+        ).filterNotNull().forEach { (label, value) ->
+            if (info.isNotEmpty()) info.append("   ")
+            val start = info.length
+            info.append(label)
+            info.setSpan(ForegroundColorSpan(TEAL), start, info.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            info.setSpan(StyleSpan(Typeface.BOLD), start, info.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            info.append(" ").append(value)
+        }
+        views.setTextViewText(R.id.infoText, info)
+        views.setViewVisibility(R.id.infoText, if (info.isEmpty()) View.GONE else View.VISIBLE)
+    }
+
+    /** One RAM/Disk line: value text plus exactly one of its three colored bars. */
+    private fun bindBarRow(views: RemoteViews, row: StatRow?, rowId: Int, valueId: Int, okId: Int, warnId: Int, hotId: Int) {
+        if (row == null) {
+            views.setViewVisibility(rowId, View.GONE)
+            return
+        }
+        views.setViewVisibility(rowId, View.VISIBLE)
+        views.setTextViewText(valueId, row.value)
+        val pct = row.percent ?: 0
+        // teal under 75%, yellow 75-89%, red 90%+
+        val shown = when {
+            pct >= 90 -> hotId
+            pct >= 75 -> warnId
+            else -> okId
+        }
+        for (bar in intArrayOf(okId, warnId, hotId)) {
+            views.setViewVisibility(bar, if (bar == shown) View.VISIBLE else View.GONE)
+            if (bar == shown) views.setProgressBar(bar, 100, pct, false)
+        }
+    }
+
+    /** Swap the refresh strip for "Updating…" while a tap-triggered fetch runs. */
+    private fun showUpdating(context: Context, manager: AppWidgetManager, id: Int) {
+        val views = RemoteViews(context.packageName, R.layout.widget_sysmon)
+        views.setViewVisibility(R.id.refreshLines, View.INVISIBLE)
+        views.setViewVisibility(R.id.updatingText, View.VISIBLE)
+        manager.partiallyUpdateAppWidget(id, views)
     }
 
     // device.address is stored as "ip:port" (e.g. "192.168.1.50:8765") — for

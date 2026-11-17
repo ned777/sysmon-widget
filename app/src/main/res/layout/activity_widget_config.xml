@@ -105,16 +105,6 @@
           list here, just plain checkboxes, all checked by default.
         -->
         <CheckBox
-            android:id="@+id/checkCpu"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/stat_cpu"
-            android:checked="true"
-            android:minHeight="52dp"
-            android:textSize="16sp"
-            app:buttonTint="@color/retro_teal" />
-
-        <CheckBox
             android:id="@+id/checkRam"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -159,36 +149,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/stat_uptime"
-            android:checked="true"
-            android:minHeight="52dp"
-            android:textSize="16sp"
-            app:buttonTint="@color/retro_teal" />
-
-        <CheckBox
-            android:id="@+id/checkClaudeDaily"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/stat_claude_daily"
-            android:checked="true"
-            android:minHeight="52dp"
-            android:textSize="16sp"
-            app:buttonTint="@color/retro_teal" />
-
-        <CheckBox
-            android:id="@+id/checkClaudeWeekly"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/stat_claude_weekly"
-            android:checked="true"
-            android:minHeight="52dp"
-            android:textSize="16sp"
-            app:buttonTint="@color/retro_teal" />
-
-        <CheckBox
-            android:id="@+id/checkStatus"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/stat_status"
             android:checked="true"
             android:minHeight="52dp"
             android:textSize="16sp"

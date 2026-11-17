@@ -24,7 +24,6 @@
     <string name="choose_device">Choose a device</string>
     <string name="no_devices_config">No devices yet. Add one in the app, then try adding the widget again.</string>
     <string name="choose_stats">Choose what to show</string>
-    <string name="stat_cpu">CPU usage</string>
     <string name="stat_ram">RAM</string>
     <string name="stat_storage">Storage</string>
     <string name="stat_temp">CPU temperature</string>
@@ -35,6 +34,9 @@
     <string name="stat_status">Status</string>
     <string name="done">Done</string>
     <string name="widget_unreachable">Unreachable</string>
+    <string name="widget_ip_label">IP Address</string>
+    <string name="widget_tap_refresh">Tap below to refresh</string>
+    <string name="widget_updating">Updating…</string>
     <string name="widget_no_device">No device — open app to add one</string>
     <string name="loading_stats">Loading stats…</string>
 </resources>
