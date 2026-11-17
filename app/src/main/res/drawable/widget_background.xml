@@ -1,58 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  The widget's full background, applied as android:background on the widget's
-  root LinearLayout in widget_sysmon.xml. A <layer-list> stacks several
-  drawables on top of each other, bottom item first — here that's four
-  layers: the dark sunset gradient, the faint grid/horizon artwork over it, a
-  dark translucent scrim over THAT (so the text drawn on top always has
-  guaranteed contrast, no matter what color happens to be behind it), and
-  finally a thin neon border on top of everything so its stroke stays crisp.
+  The widget's background: a true-black card with a crisp 2dp teal outline,
+  matching the rest of the widget family (today-widget, weather-widget,
+  vehicle-maintenance). The per-radius copies (widget_background_rNN*.xml)
+  are generated from this file — see WidgetCorners.kt.
 -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <!-- Layer 1: the dark sunset gradient fill, rounded to match the border. -->
     <item>
         <shape android:shape="rectangle">
-            <!--
-              A 3-stop linear gradient: android:angle="270" means the gradient
-              runs top-to-bottom (0 = left-to-right, and each +90 rotates
-              another quarter-turn counterclockwise, so 270 = top-to-bottom).
-              startColor is at the top, centerColor partway down, endColor at
-              the bottom — giving the navy-to-magenta-to-rust "dusk sky" fade.
-            -->
-            <gradient
-                android:angle="270"
-                android:startColor="@color/sunset_top"
-                android:centerColor="@color/sunset_mid"
-                android:endColor="@color/sunset_bottom" />
+            <solid android:color="@color/black" />
             <corners android:radius="@dimen/widget_corner_radius" />
         </shape>
     </item>
-
-    <!-- Layer 2: the faint grid/horizon artwork, drawn over the gradient. -->
-    <item android:drawable="@drawable/retro_grid_overlay" />
-
-    <!--
-      Layer 3: the contrast scrim — a ~70%-opaque near-black rectangle. This
-      is what actually fixes text readability: everything below this line
-      only needs to look good as background texture, because this scrim
-      uniformly darkens it before any text ever gets drawn on top.
-    -->
-    <item>
-        <shape android:shape="rectangle">
-            <solid android:color="@color/retro_scrim" />
-            <corners android:radius="@dimen/widget_corner_radius" />
-        </shape>
-    </item>
-
-    <!-- Layer 4: a crisp neon cyan outline on top of everything else. -->
     <item>
         <shape android:shape="rectangle">
             <stroke
-                android:width="3dp"
-                android:color="@color/retro_cyan" />
+                android:width="2dp"
+                android:color="@color/retro_teal" />
             <corners android:radius="@dimen/widget_corner_radius" />
         </shape>
     </item>
-
 </layer-list>

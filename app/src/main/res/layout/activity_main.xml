@@ -1,51 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  This is the layout for MainActivity — the screen you see when you tap the app
-  icon. Android layout files are XML that describe a tree of "Views" (visible UI
-  elements) without any code; MainActivity.kt calls setContentView(R.layout.activity_main)
-  to say "build this exact tree of views and show it".
-
-  LinearLayout is the simplest layout container: it just stacks its children one
-  after another, either top-to-bottom or left-to-right, depending on
-  android:orientation.
+  MainActivity's screen. Same visual language as the Weather / Today / Garage
+  apps: pitch-black background (from themes.xml's windowBackground), a centered
+  header with the launcher-icon mascot, a yellow letter-spaced title and a dim
+  italic subtitle, then the device list as teal-outlined black cards
+  (list_item_device.xml) and a teal-outlined "Add device" button at the bottom.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="24dp">
-    <!--
-      No explicit android:background here on purpose — plain black comes from
-      android:windowBackground in themes.xml, so every screen using
-      Theme.SysMonWidget gets it automatically instead of each layout
-      repeating it. The sunset-gradient-plus-grid look is reserved for the
-      home-screen widget only (see drawable/widget_background.xml).
-    -->
+    android:paddingTop="24dp"
+    android:paddingStart="20dp"
+    android:paddingEnd="20dp"
+    android:paddingBottom="20dp">
 
-    <!--
-      The big app title at the top, glowing cyan. android:shadow* draws a soft
-      colored blur behind the text — a cheap, layout-only way to fake a "neon
-      sign" glow without needing any extra drawables or code.
-    -->
+    <!-- Same gauge mascot as the launcher icon (@drawable/ic_launcher_foreground). -->
+    <ImageView
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:layout_gravity="center_horizontal"
+        android:contentDescription="@null"
+        android:src="@drawable/ic_launcher_foreground" />
+
     <TextView
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
         android:text="@string/app_title"
-        android:textColor="@color/retro_cyan"
+        android:textAllCaps="true"
+        android:textColor="@color/retro_yellow"
         android:textSize="22sp"
         android:textStyle="bold"
-        android:shadowColor="@color/retro_cyan"
-        android:shadowDx="0"
-        android:shadowDy="0"
-        android:shadowRadius="12"
+        android:letterSpacing="0.1"
         android:layout_marginBottom="4dp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
         android:text="@string/app_subtitle"
-        android:textColor="@color/retro_magenta"
-        android:textSize="13sp"
+        android:textColor="@color/retro_white_dim"
+        android:textSize="14sp"
         android:textStyle="italic"
         android:layout_marginBottom="20dp" />
 
@@ -53,29 +49,18 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/devices_header"
-        android:textColor="@color/retro_magenta"
-        android:textSize="18sp"
+        android:textAllCaps="true"
+        android:textColor="@color/retro_teal"
+        android:textSize="15sp"
         android:textStyle="bold"
-        android:layout_marginBottom="8dp" />
+        android:letterSpacing="0.08"
+        android:layout_marginStart="4dp"
+        android:layout_marginBottom="10dp" />
 
     <!--
-      This is the actual scrolling list of devices. Notice it has no items
-      defined here in the XML at all — MainActivity.kt finds this exact View by
-      its id (findViewById<ListView>(R.id.deviceListView)) and attaches a
-      DeviceAdapter to it in code, which is what actually supplies the rows
-      (each row drawn using list_item_device.xml).
-
-      layout_height="0dp" combined with layout_weight="1" is a common trick:
-      "take zero space by default, then grow to fill whatever space is left
-      over" after every other sibling view has taken the space it needs. That's
-      how this list stretches to fill the middle of the screen while the title
-      above and button below keep their own natural sizes.
-    -->
-    <!--
-      Wraps the list so a swipe-down-to-refresh gesture is available anywhere
-      over it. Only ListView (and a few other scrolling views) are supported
-      as SwipeRefreshLayout's single direct child — MainActivity.kt finds this
-      wrapper by id to control the spinner and listen for the swipe gesture.
+      Pull-to-refresh wrapper around the device list; MainActivity.kt finds
+      both by id, attaches a DeviceAdapter to the ListView and listens for the
+      swipe. Transparent 12dp dividers space the cards apart.
     -->
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefresh"
@@ -86,21 +71,20 @@
         <ListView
             android:id="@+id/deviceListView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:divider="@android:color/transparent"
+            android:dividerHeight="12dp"
+            android:listSelector="@android:color/transparent"
+            android:scrollbars="none" />
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-    <!--
-      Tapping this Button is wired up in MainActivity.kt via
-      findViewById<Button>(R.id.addDeviceButton).setOnClickListener { ... } —
-      the XML only says WHAT the button looks like and WHERE it sits, never
-      WHAT HAPPENS when it's tapped. That behavior always lives in the .kt file.
-    -->
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/addDeviceButton"
+        style="@style/Widget.SysMonWidget.OutlinedButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        android:text="@string/add_device" />
+        android:text="@string/add_device_button" />
 
 </LinearLayout>

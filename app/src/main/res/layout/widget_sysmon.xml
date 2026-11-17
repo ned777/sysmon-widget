@@ -25,8 +25,8 @@
 
     <!--
       Title row: the device name on the left (growing to fill available space,
-      centered within it, glowing cyan) and the device's IP address on the
-      right in orange. Both TextViews' actual text are set in code, per-widget,
+      centered within it, white like the Weather widget's city name) and the
+      device's IP address on the right in dim grey. Both TextViews' actual text are set in code, per-widget,
       inside SysMonWidgetProvider.updateOneWidget() via views.setTextViewText(...).
     -->
     <LinearLayout
@@ -40,7 +40,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textColor="@color/retro_cyan"
+            android:textColor="@color/retro_white"
             android:textSize="16sp"
             android:textStyle="bold"
             android:textAllCaps="true"
@@ -48,10 +48,6 @@
             android:gravity="center"
             android:singleLine="true"
             android:ellipsize="end"
-            android:shadowColor="@color/retro_cyan"
-            android:shadowDx="0"
-            android:shadowDy="0"
-            android:shadowRadius="8"
             android:text="--" />
 
         <TextView
@@ -59,7 +55,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="6dp"
-            android:textColor="@color/retro_orange"
+            android:textColor="@color/retro_white_dim"
             android:textSize="11sp"
             android:singleLine="true"
             android:text="" />
@@ -94,7 +90,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
-        android:textColor="@color/retro_magenta"
+        android:textColor="@color/retro_white_dim"
         android:textSize="11sp"
         android:gravity="center"
         android:text="" />

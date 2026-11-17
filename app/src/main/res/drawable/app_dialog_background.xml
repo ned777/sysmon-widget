@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Add/Edit device popup panel: near-black with the family's teal outline. -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android" android:inset="16dp">
+    <shape android:shape="rectangle">
+        <solid android:color="@color/widget_bg" />
+        <stroke android:width="2dp" android:color="@color/retro_teal" />
+        <corners android:radius="20dp" />
+    </shape>
+</inset>

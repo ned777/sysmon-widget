@@ -1,105 +1,92 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  This is the layout for ONE ROW in a devices list. It gets "inflated" (turned
-  into real View objects) once per device, by DeviceAdapter.getView() in
-  DeviceAdapter.kt. The same row layout is reused in two different screens: the
-  main device-management list (with edit/delete buttons visible) and the widget's
-  "pick a device" list (with those buttons hidden, since you're just choosing one
-  there, not managing them).
+  ONE device card, inflated per device by DeviceAdapter.getView(). Reused on
+  the main screen (edit/delete visible) and the widget's "pick a device" step
+  (buttons hidden). Styled like a mini home-screen widget: black fill, 2dp teal
+  outline (@drawable/app_card_background), cyan device name, dim IP, teal/white
+  stat rows (from StatsFormat) and a dim "Updated …" line.
 -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:gravity="top"
-    android:padding="12dp">
+    android:layout_height="wrap_content">
 
-    <!--
-      A nested LinearLayout holding the name+address text, stacked vertically.
-      layout_width="0dp" + layout_weight="1" means "grow to fill all the leftover
-      horizontal space" — this is what pushes the edit/delete buttons to sit
-      snugly on the right edge of the row instead of right next to the text.
-    -->
     <LinearLayout
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical">
+        android:orientation="horizontal"
+        android:gravity="top"
+        android:background="@drawable/app_card_background"
+        android:paddingTop="14dp"
+        android:paddingBottom="14dp"
+        android:paddingStart="18dp"
+        android:paddingEnd="8dp">
 
-        <!-- Set in code via view.findViewById<TextView>(R.id.deviceNameText).text = device.name -->
-        <TextView
-            android:id="@+id/deviceNameText"
-            android:layout_width="match_parent"
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:textStyle="bold"
-            android:textSize="16sp"
-            android:textColor="@color/retro_cyan"
-            android:text="--" />
+            android:layout_weight="1"
+            android:orientation="vertical">
 
-        <!-- Set in code via view.findViewById<TextView>(R.id.deviceAddressText).text = device.address -->
-        <TextView
-            android:id="@+id/deviceAddressText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="13sp"
-            android:textColor="@color/retro_orange"
-            android:text="--" />
+            <TextView
+                android:id="@+id/deviceNameText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textStyle="bold"
+                android:textSize="17sp"
+                android:textAllCaps="true"
+                android:letterSpacing="0.06"
+                android:textColor="@color/retro_cyan"
+                android:text="--" />
 
-        <!--
-          Every stat this device currently reports (RAM, Storage, Claude
-          Daily/Weekly if present, Status) — unlike the widget, the app always
-          shows all of it, with no per-stat picker. DeviceAdapter.kt fetches
-          this live and fills it in; it starts out showing a "Loading stats…"
-          placeholder until the first fetch for this device finishes.
-        -->
-        <TextView
-            android:id="@+id/deviceStatsText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:textSize="12sp"
-            android:lineSpacingExtra="2dp"
-            android:textColor="@color/retro_white"
-            android:text="" />
+            <TextView
+                android:id="@+id/deviceAddressText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textSize="12sp"
+                android:textColor="@color/retro_white_dim"
+                android:text="--" />
 
-        <!--
-          "Updated <date>, <time> <timezone>" — same format/wording as the
-          widget's own updatedText, so the app and widget read consistently.
-          Set in code via DeviceAdapter.kt; left GONE until there's an actual
-          fetch timestamp to show (e.g. still loading on first launch).
-        -->
-        <TextView
-            android:id="@+id/deviceUpdatedText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textSize="11sp"
-            android:textColor="@color/retro_magenta"
-            android:visibility="gone"
-            android:text="" />
+            <!-- Every stat this device reports; filled live by DeviceAdapter.kt. -->
+            <TextView
+                android:id="@+id/deviceStatsText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:textSize="13sp"
+                android:lineSpacingExtra="4dp"
+                android:textColor="@color/retro_white"
+                android:text="" />
+
+            <!-- "Updated <date>, <time>" — GONE until there's a fetch timestamp. -->
+            <TextView
+                android:id="@+id/deviceUpdatedText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textSize="11sp"
+                android:textColor="@color/retro_white_dim"
+                android:visibility="gone"
+                android:text="" />
+        </LinearLayout>
+
+        <!-- Edit (pencil) — only VISIBLE when DeviceAdapter got an onEdit callback. -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/editButton"
+            style="@style/Widget.SysMonWidget.IconButton"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:textColor="@color/retro_teal"
+            android:text="✎" />
+
+        <!-- Delete (X) — only VISIBLE on the main device-management screen. -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/deleteButton"
+            style="@style/Widget.SysMonWidget.IconButton"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:textColor="@color/retro_red"
+            android:text="✕" />
+
     </LinearLayout>
-
-    <!--
-      Edit button (a pencil symbol). DeviceAdapter only makes this VISIBLE when
-      an onEdit callback was actually supplied by whoever created the adapter —
-      see DeviceAdapter.kt. On the widget's device-picker screen this stays GONE.
-    -->
-    <Button
-        android:id="@+id/editButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="✎" />
-
-    <!--
-      Delete button (an X symbol). Only made VISIBLE by DeviceAdapter when this
-      list was built with showDelete = true — again, that only happens on the
-      main app's device-management screen, never on the widget's picker.
-    -->
-    <Button
-        android:id="@+id/deleteButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
-        android:text="✕" />
-
-</LinearLayout>
+</FrameLayout>

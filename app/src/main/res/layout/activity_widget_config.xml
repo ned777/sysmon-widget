@@ -9,6 +9,7 @@
   second Activity.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -25,9 +26,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/choose_device"
-            android:textSize="18sp"
+            android:textAllCaps="true"
+            android:textColor="@color/retro_teal"
+            android:textSize="16sp"
             android:textStyle="bold"
-            android:layout_marginBottom="12dp" />
+            android:letterSpacing="0.08"
+            android:layout_marginBottom="14dp" />
 
         <!--
           Filled in with a DeviceAdapter by WidgetConfigActivity.kt (reusing the
@@ -39,7 +43,10 @@
             android:id="@+id/configDeviceListView"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:divider="@android:color/transparent"
+            android:dividerHeight="12dp"
+            android:scrollbars="none" />
 
         <!--
           Both of these start hidden (visibility="gone") and are only revealed
@@ -54,10 +61,12 @@
             android:layout_weight="1"
             android:gravity="center"
             android:text="@string/no_devices_config"
+            android:textColor="@color/retro_white_dim"
             android:visibility="gone" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/configAddDeviceButton"
+            style="@style/Widget.SysMonWidget.OutlinedButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
@@ -83,9 +92,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/choose_stats"
-            android:textSize="18sp"
+            android:textAllCaps="true"
+            android:textColor="@color/retro_teal"
+            android:textSize="16sp"
             android:textStyle="bold"
-            android:layout_marginBottom="12dp" />
+            android:letterSpacing="0.08"
+            android:layout_marginBottom="14dp" />
 
         <!--
           Each CheckBox's checked/unchecked state is read directly by
@@ -97,43 +109,59 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/stat_ram"
-            android:checked="true" />
+            android:checked="true"
+            android:minHeight="52dp"
+            android:textSize="16sp"
+            app:buttonTint="@color/retro_teal" />
 
         <CheckBox
             android:id="@+id/checkStorage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/stat_storage"
-            android:checked="true" />
+            android:checked="true"
+            android:minHeight="52dp"
+            android:textSize="16sp"
+            app:buttonTint="@color/retro_teal" />
 
         <CheckBox
             android:id="@+id/checkClaudeDaily"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/stat_claude_daily"
-            android:checked="true" />
+            android:checked="true"
+            android:minHeight="52dp"
+            android:textSize="16sp"
+            app:buttonTint="@color/retro_teal" />
 
         <CheckBox
             android:id="@+id/checkClaudeWeekly"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/stat_claude_weekly"
-            android:checked="true" />
+            android:checked="true"
+            android:minHeight="52dp"
+            android:textSize="16sp"
+            app:buttonTint="@color/retro_teal" />
 
         <CheckBox
             android:id="@+id/checkStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/stat_status"
-            android:checked="true" />
+            android:checked="true"
+            android:minHeight="52dp"
+            android:textSize="16sp"
+            app:buttonTint="@color/retro_teal" />
 
         <!--
           Tapping this is what finally calls setResult(RESULT_OK, ...) and
           finish() in WidgetConfigActivity.kt — the point where Android actually
           goes ahead and places the widget on the home screen.
         -->
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/doneConfigButton"
+            style="@style/Widget.SysMonWidget.OutlinedButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
