@@ -54,7 +54,7 @@
         android:orientation="vertical"
         android:gravity="center_vertical">
 
-        <!-- "IP Address   192.168.1.20" — same size/colors as the RAM/Disk rows. -->
+        <!-- "IP Address   192.0.2.10" — same size/colors as the RAM/Disk rows. -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

@@ -1,22 +1,24 @@
 # SysMon (Device Monitor Agent)
 
 An Android home-screen widget that glances at another computer's health —
-RAM, storage, and local Claude Code token usage — by polling a small local
-HTTP agent that runs on that machine. No cloud service involved: the widget
-talks directly to the agent over whatever private network connects your
-phone and computer (Wi-Fi LAN, Tailscale, etc.), and only refreshes when you
-tap it.
+RAM, storage, temperature, load and uptime — by polling a small local HTTP
+agent that runs on that machine. The companion app shows the full picture
+per device, including CPU usage and local Claude Code token usage. No cloud
+service involved: the phone talks directly to the agent over whatever
+private network connects it to the computer (Wi-Fi LAN, a VPN, etc.), and
+the widget only refreshes when you ask it to.
 
 ## How it works
 
 Two independent pieces:
 
 1. **`agent/monitor_agent.py`** — a single-file, stdlib-only Python HTTP
-   server. `GET /stats` returns a JSON snapshot: CPU usage %, core count and
-   load averages, hottest CPU temperature (when the machine exposes a
-   sensor), uptime, RAM used/total, storage used/total for `/`, and Claude Code token usage aggregated from every
-   `~/.claude/projects/**/*.jsonl` transcript on that machine, both for
-   today and for a rolling 7-day window.
+   server. `GET /stats` returns a JSON snapshot: RAM used/total, storage
+   used/total for `/`, CPU usage % (sampled over a quarter second), core
+   count and load averages, the hottest CPU temperature (when the machine
+   exposes a sensor), uptime, and Claude Code token usage aggregated from
+   every `~/.claude/projects/**/*.jsonl` transcript on that machine, both
+   for today and for a rolling 7-day window.
 2. **The Android app** (`app/`) — lets you register one or more devices
    (a name + `ip:port` each), and shows a home-screen widget per device.
    Adding a widget prompts you to pick which registered device it should
@@ -26,42 +28,58 @@ Two independent pieces:
 ## Widget
 
 ```
-Home PC                      ← bold, centered — the device's name
-RAM: 3GB out of 15GB
-Storage: 10GB out of 231GB
-Claude (Daily): 125K in / 40K out
-Claude (Weekly): 800K in / 210K out
-Status: Online
-Updated 14:32                ← bottom, centered
+┌──────────────────────────────────────┐
+│               HOME PC                │  ← device name, white, centered
+│ IP Address               192.0.2.10  │
+│ RAM   ▰▰▰▱▱▱▱▱▱▱▱▱▱▱▱      3.9/15GB  │  ← one line each, usage bar
+│ Disk  ▰▱▱▱▱▱▱▱▱▱▱▱▱▱▱      17/231GB  │
+│   Temp 57°C   Load 0.73   Up 2d 16h  │  ← one summary line
+│         Tap below to refresh         │
+│    Online · Updated Nov 17, 11:44    │  ← or "Unreachable — last …"
+└──────────────────────────────────────┘
 ```
 
-Labels are bold, values are regular weight. **The widget only updates when
-you tap it** — periodic auto-refresh is turned off (`updatePeriodMillis="0"`
-in the widget's manifest), so it's a manual "check now" tool rather than
-something quietly polling in the background. If the agent doesn't respond,
-the widget keeps showing the last successful reading and flips `Status` to
-`Offline` instead of going blank. Stat rows are backed by a scrollable list,
-so shrinking the widget (down to about a 2×1 grid cell) scrolls instead of
-clipping.
+Same look as the rest of my widget family (Today, Weather, Garage):
+pitch-black card with a 2dp teal outline, teal labels and white values.
 
-### Screenshots
+- **Fixed rows, no scrolling.** IP address, then RAM and Disk on one line
+  each with an inline usage bar, then one summary line for temperature,
+  load and uptime. The label and value columns are fixed widths, so both
+  bars are always exactly the same length.
+- **Usage bars change color**: teal below 75%, yellow from 75%, red from 90%.
+- **Rows hide themselves** when that stat is switched off for the widget
+  (you choose when adding it) or when the device's agent doesn't report it
+  — e.g. an older agent without temperature/uptime, or a machine with no
+  temperature sensor.
+- **Tapping:** tap anywhere on the widget to open the app. Tap the bottom
+  strip (**Tap below to refresh**) to fetch fresh stats; it shows
+  **Updating…** while the request runs.
+- **Manual refresh only** — periodic auto-refresh is off
+  (`updatePeriodMillis="0"`), so the widget never polls in the background.
+  If the agent doesn't answer, the widget keeps the last successful reading
+  and the footer switches to **Unreachable — last &lt;time&gt;**.
 
-<p>
-  <img src="screenshots/sysmon-widgets-home-screen.jpg" width="45%" alt="Three device widgets (DNS Resolver, Linux.AI Server, VPN Server) on the home screen" />
-  <img src="screenshots/sysmon-device-manager.jpg" width="45%" alt="Device Monitor Agent app showing the registered devices list" />
-</p>
+CPU usage and Claude token usage are deliberately left off the widget to
+keep it short; the app shows both.
 
-### Why there's no CPU or network row
+## App
 
-An earlier version showed CPU usage and network throughput. Both were
-removed: CPU percent is only meaningful as an average measured over a
-window of continuous sampling, but this widget only takes a single
-snapshot whenever you tap it — a lone reading like "12%" doesn't actually
-describe how busy the machine has been, and a widget that's deliberately
-*not* running in the background has no business implying it does. Network
-throughput had the same problem (it's a rate between two samples, and taps
-are irregular and infrequent). RAM and storage are fine as one-off
-snapshots since they're stateful gauges, not rates.
+The app (**Device Monitor Agent**) is styled like the widget: black
+background, a centered header with the gauge icon, and one teal-outlined
+card per device showing its name, address, every stat it reports
+(including CPU and Claude Code daily/weekly tokens) and when it was last
+updated. Pull down to refresh all devices; ✎ edits a device and ✕
+removes it; **+ Add device** registers a new one.
+
+### Why CPU is in the app but not the widget
+
+CPU percent is a rate: it only means something when measured over a window.
+The agent samples it over a quarter second at request time, which is fine
+for a quick look in the app, but a widget that only updates when tapped
+would keep showing that one moment's reading for hours. Load average (on
+the widget's summary line) is already smoothed over 1 and 5 minutes, so it
+answers "has this machine been busy?" better from a snapshot. Network
+throughput isn't reported for the same reason.
 
 ### Why there's no cost estimate
 
@@ -75,8 +93,9 @@ rather than an estimate.
 ## Requirements
 
 - **On each computer being monitored:** Python 3 (stdlib only — no
-  `psutil` or other packages needed), Linux (reads `/proc/meminfo` and
-  uses `shutil.disk_usage`).
+  `psutil` or other packages needed), Linux (reads `/proc/meminfo`,
+  `/proc/stat`, `/proc/uptime` and `/sys/class/hwmon` / `thermal`, and uses
+  `shutil.disk_usage`).
 - **On the phone:** Android 10 (API 29) or newer.
 - Phone and computer need to reach each other over the network — same
   Wi-Fi, a VPN like Tailscale, etc. There's no cloud relay.
@@ -134,11 +153,18 @@ crashes. Check on it with `systemctl --user status sysmon-agent` or
 This isn't installed automatically; do it per machine you want always-on
 monitoring for. (Claude Code doesn't need to be installed on a monitored
 machine — if `~/.claude/projects` doesn't exist there, the Claude
-Daily/Weekly rows just report zero instead of erroring.)
+Daily/Weekly rows are simply left out instead of erroring.)
 
 **No authentication.** Anything that can reach the port can read these
 stats. That's an accepted tradeoff for a personal tool running over a
 private/trusted network — don't expose the port publicly.
+
+### Updating the agent
+
+Copy the new `monitor_agent.py` over the old one on each machine and
+restart it (`systemctl --user restart sysmon-agent`). The app and widget
+work with older agents too — they just hide the stats an older agent
+doesn't send.
 
 ## Installing the widget
 
@@ -150,12 +176,13 @@ export JAVA_HOME=<path to a JDK 17>
 Then open the app (**Device Monitor Agent** in your app drawer):
 
 1. Tap **Add device**, give it a name and its `ip:port` (matching wherever
-   that machine's `monitor_agent.py` is bound — e.g. `192.168.1.50:8765`).
+   that machine's `monitor_agent.py` is bound — e.g. `192.0.2.10:8765`).
    Repeat for each machine you want to monitor.
 2. Long-press your home screen → Widgets → find **Device Monitor Agent**
    and drag it on. Android will prompt you to **choose which device** this
-   widget instance should show.
-3. Tap the widget any time to refresh it.
+   widget instance should show, then which stats it should display.
+3. Tap **Tap below to refresh** on the widget any time to update it; tap
+   anywhere else on it to open the app.
 
 Removing a device from the app (✕ button) makes any widget still pointed
 at it fall back to an offline state rather than crashing.
@@ -171,11 +198,12 @@ agent/
   sysmon-boot-notify.service    — optional systemd --user unit for boot_notify.py (not installed)
 app/src/main/java/com/sysmonwidget/app/
   Device.kt                     — Device model + SharedPreferences-backed store
-  DeviceAdapter.kt               — list adapter shared by the manager screen and picker
-  MainActivity.kt                 — device manager (add/remove)
-  WidgetConfigActivity.kt          — per-widget device picker, shown when adding a widget
-  SysMonWidgetProvider.kt           — AppWidgetProvider: fetch, cache, render
-  SysMonRemoteViewsService.kt        — RemoteViewsService/ListView adapter (scrollable stat rows)
-  StatsFormat.kt                      — shared row-formatting logic
+  DeviceAdapter.kt               — device cards, shared by the manager screen and picker
+  DeviceStatsCache.kt             — last fetched stats per device (shared by app + widgets)
+  MainActivity.kt                  — device manager (add/edit/remove, pull to refresh)
+  WidgetConfigActivity.kt           — per-widget device + stats picker, shown when adding a widget
+  SysMonWidgetProvider.kt            — AppWidgetProvider: fetch, cache, render, tap handling
+  StatsFormat.kt                      — turns agent JSON into stat rows (widget + app)
   StatsClient.kt                       — HttpURLConnection GET + JSON parse
+  WidgetCorners.kt                      — matches the widget border radius to the launcher's mask
 ```
