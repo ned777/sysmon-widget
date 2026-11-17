@@ -3,7 +3,7 @@
   One row of the widget's stats list — inflated per stat by
   StatsRemoteViewsFactory.getViewAt(). A single line: short teal label on the
   left, compact white value right-aligned, and (for CPU / RAM / Disk / Temp) a
-  thin 3dp usage bar underneath. There are three copies of the bar, one per
+  6dp usage bar underneath. There are three copies of the bar, one per
   color (ok/warn/hot), because RemoteViews can't recolor a ProgressBar on older
   Android versions — the factory shows the right one and hides the others.
 -->
@@ -51,7 +51,7 @@
         android:id="@+id/statBarOk"
         style="@android:style/Widget.ProgressBar.Horizontal"
         android:layout_width="match_parent"
-        android:layout_height="3dp"
+        android:layout_height="6dp"
         android:layout_marginTop="3dp"
         android:max="100"
         android:progressDrawable="@drawable/widget_bar_ok"
@@ -61,7 +61,7 @@
         android:id="@+id/statBarWarn"
         style="@android:style/Widget.ProgressBar.Horizontal"
         android:layout_width="match_parent"
-        android:layout_height="3dp"
+        android:layout_height="6dp"
         android:layout_marginTop="3dp"
         android:max="100"
         android:progressDrawable="@drawable/widget_bar_warn"
@@ -71,7 +71,7 @@
         android:id="@+id/statBarHot"
         style="@android:style/Widget.ProgressBar.Horizontal"
         android:layout_width="match_parent"
-        android:layout_height="3dp"
+        android:layout_height="6dp"
         android:layout_marginTop="3dp"
         android:max="100"
         android:progressDrawable="@drawable/widget_bar_hot"

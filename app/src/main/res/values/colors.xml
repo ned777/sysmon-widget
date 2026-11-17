@@ -22,5 +22,5 @@
     <color name="retro_white_dim">#8C8C99</color>
     <color name="retro_red">#E8404D</color>
     <!-- Unfilled part of the widget's usage bars. -->
-    <color name="bar_track">#26262E</color>
+    <color name="bar_track">#55555F</color>
 </resources>
