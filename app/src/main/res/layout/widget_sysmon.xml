@@ -24,10 +24,9 @@
     android:paddingEnd="20dp">
 
     <!--
-      Title row: the device name on the left (growing to fill available space,
-      centered within it, white like the Weather widget's city name) and the
-      device's IP address on the right in dim grey. Both TextViews' actual text are set in code, per-widget,
-      inside SysMonWidgetProvider.updateOneWidget() via views.setTextViewText(...).
+      Title row: the device name, centered, white like the Weather widget's
+      city name. (The IP lives in the footer, above the status line.)
+      Text set in code by SysMonWidgetProvider.updateOneWidget().
     -->
     <LinearLayout
         android:layout_width="match_parent"
@@ -49,16 +48,6 @@
             android:singleLine="true"
             android:ellipsize="end"
             android:text="--" />
-
-        <TextView
-            android:id="@+id/ipText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
-            android:textColor="@color/retro_white_dim"
-            android:textSize="11sp"
-            android:singleLine="true"
-            android:text="" />
 
     </LinearLayout>
 
@@ -84,18 +73,31 @@
         android:scrollbars="none" />
 
     <!--
-      Small status line at the bottom: either "Updated HH:mm" on a successful
-      refresh, or "Unreachable — last HH:mm" if the device couldn't be reached.
-      Text set in code by SysMonWidgetProvider.updateOneWidget().
+      Footer, white and centered: the device's IP, then the status line —
+      "Updated <time>" on a successful refresh, or "Unreachable — last <time>"
+      if the device couldn't be reached. Both set in code by
+      SysMonWidgetProvider.updateOneWidget().
     -->
+    <TextView
+        android:id="@+id/ipText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center"
+        android:textColor="@color/retro_white"
+        android:textSize="13sp"
+        android:singleLine="true"
+        android:text="" />
+
     <TextView
         android:id="@+id/updatedText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:textColor="@color/retro_white_dim"
-        android:textSize="11sp"
+        android:layout_marginTop="1dp"
         android:gravity="center"
+        android:textColor="@color/retro_white"
+        android:textSize="13sp"
+        android:singleLine="true"
+        android:ellipsize="end"
         android:text="" />
-
 </LinearLayout>
