@@ -102,8 +102,18 @@
         <!--
           Each CheckBox's checked/unchecked state is read directly by
           WidgetConfigActivity.kt when "Done" is tapped — there's no adapter or
-          list here, just five plain checkboxes, all checked by default.
+          list here, just plain checkboxes, all checked by default.
         -->
+        <CheckBox
+            android:id="@+id/checkCpu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/stat_cpu"
+            android:checked="true"
+            android:minHeight="52dp"
+            android:textSize="16sp"
+            app:buttonTint="@color/retro_teal" />
+
         <CheckBox
             android:id="@+id/checkRam"
             android:layout_width="match_parent"
@@ -119,6 +129,36 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/stat_storage"
+            android:checked="true"
+            android:minHeight="52dp"
+            android:textSize="16sp"
+            app:buttonTint="@color/retro_teal" />
+
+        <CheckBox
+            android:id="@+id/checkTemp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/stat_temp"
+            android:checked="true"
+            android:minHeight="52dp"
+            android:textSize="16sp"
+            app:buttonTint="@color/retro_teal" />
+
+        <CheckBox
+            android:id="@+id/checkLoad"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/stat_load"
+            android:checked="true"
+            android:minHeight="52dp"
+            android:textSize="16sp"
+            app:buttonTint="@color/retro_teal" />
+
+        <CheckBox
+            android:id="@+id/checkUptime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/stat_uptime"
             android:checked="true"
             android:minHeight="52dp"
             android:textSize="16sp"

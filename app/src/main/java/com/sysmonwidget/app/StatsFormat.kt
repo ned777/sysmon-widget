@@ -13,61 +13,57 @@ import java.util.Date
 import java.util.Locale
 
 /**
+ * One stat for the widget's two-column grid: a short [label] ("CPU"), a compact
+ * [value] ("12%" / "1.2/15GB"), and — for the usage-style stats — a 0..100
+ * [percent] that drives the thin bar drawn under the row. [percent] is null
+ * for stats with no natural "how full" (uptime, load, Claude tokens, status).
+ */
+data class StatRow(val label: String, val value: String, val percent: Int? = null)
+
+/**
  * StatsFormat turns the raw JSON that the Python agent sends (numbers like
  * "used_mb": 8192) into the actual text rows shown in the widget (like
- * "RAM: 8GB out of 16GB"), styled with colors and bold. Keeping all of this
+ * "RAM 8/16GB" plus a usage bar), styled with colors and bold. Keeping all of this
  * formatting logic in one place means both the widget AND (if we ever add one)
  * a future settings screen could reuse the exact same "what does a RAM row look
  * like" logic without copy-pasting it.
  */
 object StatsFormat {
 
-    // These two colors are used to paint every stat row: the label part (e.g.
-    // "RAM: ") in teal, and the value part (e.g. "8GB out of 16GB")
-    // in off-white. Color.parseColor() reads a hex color string ("#RRGGBB")
-    // the same way you'd write one in CSS, and turns it into the Int format
-    // Android's drawing APIs expect internally. These match @color/retro_teal
-    // and @color/retro_white in colors.xml — kept as literal hex here (rather
-    // than a resource lookup) because SpannableString styling happens in plain
-    // Kotlin code with no Context/resources readily at hand at this point.
+    // Label (teal) / value (off-white) colors for the APP's text rows; they
+    // match @color/retro_teal and @color/retro_white in colors.xml.
     private val LABEL_COLOR = Color.parseColor("#00E0B8")
     private val VALUE_COLOR = Color.parseColor("#F5F5FF")
 
-    // `const val` are compile-time constants — plain string labels we use as keys
-    // for "which stats has the user chosen to show on this widget". Using named
-    // constants like KEY_RAM instead of typing the raw string "ram" everywhere
-    // means a typo becomes a compile error instead of a silent bug.
+    const val KEY_CPU = "cpu"
     const val KEY_RAM = "ram"
     const val KEY_STORAGE = "storage"
+    const val KEY_TEMP = "temp"
+    const val KEY_LOAD = "load"
+    const val KEY_UPTIME = "uptime"
     const val KEY_CLAUDE_DAILY = "claude_daily"
     const val KEY_CLAUDE_WEEKLY = "claude_weekly"
     const val KEY_STATUS = "status"
 
-    // The full list of every stat that exists, in the widget's default order —
-    // used as a fallback when a widget hasn't customized which stats to show yet.
-    val ALL_KEYS = listOf(KEY_RAM, KEY_STORAGE, KEY_CLAUDE_DAILY, KEY_CLAUDE_WEEKLY, KEY_STATUS)
+    /** Every stat, in the order the widget grid shows them (left-to-right, top-to-bottom). */
+    val ALL_KEYS = listOf(
+        KEY_CPU, KEY_RAM, KEY_STORAGE, KEY_TEMP, KEY_LOAD, KEY_UPTIME,
+        KEY_CLAUDE_DAILY, KEY_CLAUDE_WEEKLY, KEY_STATUS
+    )
 
     /**
-     * Builds one styled row of text like "RAM: 8GB out of 16GB", where the label
-     * ("RAM: ") is bold + teal, and the value ("8GB out of 16GB") is off-white.
-     *
-     * Plain Strings in Android can only be ONE color/style for their whole length,
-     * so to make part of a string bold and another part a different color, we
-     * need a SpannableString — think of it as "a string, plus a list of style
-     * instructions that apply to specific character ranges within it".
+     * Stats added in pref version 2. Widgets configured before they existed
+     * have a saved stats list without them — StatsRemoteViewsFactory switches
+     * these on for such widgets so nobody has to re-add their widget.
      */
+    val KEYS_ADDED_V2 = setOf(KEY_CPU, KEY_TEMP, KEY_LOAD, KEY_UPTIME)
+    const val STATS_PREF_VERSION = 2
+
+    /** Bold teal "Label: " followed by off-white value — used by the app's device cards. */
     fun boldLabel(label: String, value: String): SpannableString {
-        // Glue label and value into one piece of text first...
         val spannable = SpannableString(label + value)
         val labelEnd = label.length
         val totalEnd = spannable.length
-
-        // ...then paint styles onto specific ranges of it. setSpan(style, start,
-        // end, flag) says "apply this style from character `start` up to (but not
-        // including) character `end`". SPAN_EXCLUSIVE_EXCLUSIVE is the normal flag
-        // to use — it means the style doesn't automatically expand if more text
-        // gets inserted right at its edges (which can't happen here anyway, since
-        // this string never changes after we build it).
         spannable.setSpan(StyleSpan(Typeface.BOLD), 0, labelEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         spannable.setSpan(ForegroundColorSpan(LABEL_COLOR), 0, labelEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         spannable.setSpan(ForegroundColorSpan(VALUE_COLOR), labelEnd, totalEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
@@ -75,84 +71,20 @@ object StatsFormat {
     }
 
     /**
-     * Turns the raw JSON blob from the agent into the actual list of text rows the
-     * widget should display, in order, respecting which stats the user enabled
-     * for this particular widget.
-     *
-     * @param json          parsed JSON from the agent, e.g. {"ram": {...}, ...}
-     * @param reachable     whether the last request to the agent succeeded — used
-     *                      for the Status row.
-     * @param enabledStats  which of the KEY_* constants above this widget wants to
-     *                      show (the user picks this in the widget setup screen).
+     * The widget's rows: every enabled stat this device's agent actually
+     * reports. Stats an older agent doesn't send (cpu/temp/uptime) are simply
+     * skipped rather than shown as blanks, as is Claude usage with zero tokens.
      */
-    fun buildStatRows(json: JSONObject, reachable: Boolean, enabledStats: Set<String>): List<CharSequence> {
-        // mutableListOf makes a list we're allowed to add() to as we go — regular
-        // Kotlin lists (like the `ALL_KEYS` list above) are read-only by default.
-        val rows = mutableListOf<CharSequence>()
+    fun buildStatRows(json: JSONObject, reachable: Boolean, enabledStats: Set<String>): List<StatRow> =
+        ALL_KEYS.filter { it in enabledStats }.mapNotNull { rowFor(it, json, reachable) }
 
-        // `in` here checks set membership: "is the string KEY_RAM present inside
-        // the enabledStats set?" — if the user turned this stat off, we skip it
-        // entirely and it just won't appear as a row.
-        if (KEY_RAM in enabledStats) rows.add(ramRow(json.getJSONObject("ram")))
-        if (KEY_STORAGE in enabledStats) rows.add(storageRow(json.getJSONObject("storage")))
-
-        if (KEY_CLAUDE_DAILY in enabledStats) {
-            val claude = json.getJSONObject("claude")
-            claudeRow("Claude (Daily): ", claude.getJSONObject("tokens_daily"))?.let { rows.add(it) }
+    /** Every stat the device reports, as "Label: value" lines for the app's device cards. */
+    fun buildAllStatRows(json: JSONObject, reachable: Boolean): List<CharSequence> =
+        ALL_KEYS.mapNotNull { rowFor(it, json, reachable) }.map { row ->
+            val value = if (row.percent != null && !row.value.contains("%")) "${row.value}  (${row.percent}%)" else row.value
+            boldLabel("${longLabel(row.label)}: ", value)
         }
 
-        if (KEY_CLAUDE_WEEKLY in enabledStats) {
-            val claude = json.getJSONObject("claude")
-            claudeRow("Claude (Weekly): ", claude.getJSONObject("tokens_weekly"))?.let { rows.add(it) }
-        }
-
-        if (KEY_STATUS in enabledStats) {
-            rows.add(boldLabel("Status: ", if (reachable) "Online" else "Offline"))
-        }
-
-        return rows
-    }
-
-    /**
-     * Builds EVERY stat row a device's JSON actually supports — used by the app's
-     * own device list, which (unlike a widget) always shows everything rather
-     * than letting the user pick a subset. Unlike buildStatRows() above, this
-     * never assumes a key is present just because it was "enabled" — it checks
-     * `json.has(...)` itself and quietly skips a row if the data isn't there, so
-     * a device that doesn't run Claude Code (and therefore never reports a
-     * "claude" section) simply shows RAM/Storage/Status with no Claude rows,
-     * instead of crashing or showing a broken row.
-     */
-    fun buildAllStatRows(json: JSONObject, reachable: Boolean): List<CharSequence> {
-        val rows = mutableListOf<CharSequence>()
-
-        if (json.has("ram")) rows.add(ramRow(json.getJSONObject("ram")))
-        if (json.has("storage")) rows.add(storageRow(json.getJSONObject("storage")))
-
-        if (json.has("claude")) {
-            val claude = json.getJSONObject("claude")
-            if (claude.has("tokens_daily")) {
-                claudeRow("Claude (Daily): ", claude.getJSONObject("tokens_daily"))?.let { rows.add(it) }
-            }
-            if (claude.has("tokens_weekly")) {
-                claudeRow("Claude (Weekly): ", claude.getJSONObject("tokens_weekly"))?.let { rows.add(it) }
-            }
-        }
-
-        rows.add(boldLabel("Status: ", if (reachable) "Online" else "Offline"))
-        return rows
-    }
-
-    /**
-     * Combines several rows (each its own separately-styled SpannableString)
-     * into ONE piece of text with a line break between each — for a widget row
-     * this isn't needed (every row gets its own separate TextView), but the
-     * app's device list shows a whole device's stats inside a single TextView,
-     * so they need to be one CharSequence. SpannableStringBuilder is like
-     * SpannableString but mutable/appendable, and appending a CharSequence that
-     * already carries color/bold spans preserves those spans automatically —
-     * this is what keeps each row's own coloring intact after combining.
-     */
     fun joinRows(rows: List<CharSequence>): CharSequence {
         val builder = SpannableStringBuilder()
         rows.forEachIndexed { index, row ->
@@ -162,71 +94,82 @@ object StatsFormat {
         return builder
     }
 
-    private fun ramRow(ram: JSONObject): SpannableString =
-        boldLabel("RAM: ", memoryRange(ram.getInt("used_mb"), ram.getInt("total_mb")))
-
-    /**
-     * Picks the biggest unit (GB, then MB, then KB) that still shows the USED
-     * amount as a non-zero whole number, and shows BOTH numbers in that same
-     * unit. Without this, a lightly-loaded device (say, 150MB used out of
-     * 4096MB total) would round down to a confusing "0GB out of 4GB" — this
-     * steps down a tier at a time until the used side actually reads as
-     * something. Falling all the way through to KB is extremely unlikely in
-     * practice (it would mean under 1MB used, which real systems don't do),
-     * but handles it cleanly rather than ever showing a bare "0".
-     */
-    private fun memoryRange(usedMb: Int, totalMb: Int): String {
-        val usedGb = Math.round(usedMb / 1024.0)
-        if (usedGb > 0) {
-            return "%dGB out of %dGB".format(usedGb, Math.round(totalMb / 1024.0))
-        }
-        if (usedMb > 0) {
-            return "${usedMb}MB out of ${totalMb}MB"
-        }
-        return "${usedMb * 1024}KB out of ${totalMb * 1024}KB"
+    private fun longLabel(short: String): String = when (short) {
+        "Disk" -> "Storage"
+        "Claude 1d" -> "Claude (Daily)"
+        "Claude 7d" -> "Claude (Weekly)"
+        else -> short
     }
 
-    private fun storageRow(storage: JSONObject): SpannableString =
-        boldLabel(
-            "Storage: ",
-            "%dGB out of %dGB".format(storage.getInt("used_gb"), storage.getInt("total_gb"))
-        )
+    private fun rowFor(key: String, json: JSONObject, reachable: Boolean): StatRow? = try {
+        when (key) {
+            KEY_CPU -> json.optJSONObject("cpu")?.let { cpu ->
+                val pct = cpu.getDouble("percent")
+                StatRow("CPU", "%.0f%% · %dc".format(pct, cpu.optInt("cores", 1)), pct.toPercent())
+            }
+            KEY_RAM -> json.optJSONObject("ram")?.let { ram ->
+                val used = ram.getInt("used_mb"); val total = ram.getInt("total_mb")
+                StatRow("RAM", memoryRange(used, total), percentOf(used.toDouble(), total.toDouble()))
+            }
+            KEY_STORAGE -> json.optJSONObject("storage")?.let { st ->
+                val used = st.getInt("used_gb"); val total = st.getInt("total_gb")
+                val pct = if (st.has("percent")) st.getDouble("percent").toPercent() else percentOf(used.toDouble(), total.toDouble())
+                StatRow("Disk", "$used/${total}GB", pct)
+            }
+            KEY_TEMP -> if (json.isNull("temp_c") || !json.has("temp_c")) null else {
+                val c = json.getDouble("temp_c")
+                // Bar scaled to 0..100°C so it fills/turns warn/hot at sensible CPU temps.
+                StatRow("Temp", "%.0f°C".format(c), c.toPercent())
+            }
+            KEY_LOAD -> json.optJSONObject("cpu")?.optJSONArray("load")?.let { load ->
+                StatRow("Load", "%.2f %.2f".format(load.getDouble(0), load.getDouble(1)))
+            }
+            KEY_UPTIME -> if (json.isNull("uptime_s") || !json.has("uptime_s")) null
+                else StatRow("Uptime", formatUptime(json.getLong("uptime_s")))
+            KEY_CLAUDE_DAILY -> json.optJSONObject("claude")?.optJSONObject("tokens_daily")?.let { claudeRow("Claude 1d", it) }
+            KEY_CLAUDE_WEEKLY -> json.optJSONObject("claude")?.optJSONObject("tokens_weekly")?.let { claudeRow("Claude 7d", it) }
+            KEY_STATUS -> StatRow("Status", if (reachable) "Online" else "Offline")
+            else -> null
+        }
+    } catch (e: Exception) {
+        null // a malformed/partial field from some agent version shouldn't hide every other stat
+    }
 
-    /**
-     * Builds one Claude usage row ("Claude (Daily): 1.2M in / 340K out") — or
-     * returns null to mean "don't show this row at all" when there's simply
-     * nothing to report. The agent ALWAYS includes a "claude" section with
-     * this same shape, even on a device that's never run Claude Code — it
-     * just comes back as all zeros rather than being left out entirely. So
-     * checking `json.has("claude")` alone (as buildAllStatRows briefly did)
-     * never actually catches that case; checking whether the numbers
-     * themselves are zero is what actually hides the row.
-     */
-    private fun claudeRow(label: String, tokens: JSONObject): CharSequence? {
-        // Cache-read tokens are billed like regular input tokens, so we fold them
-        // into the "in" total rather than showing a confusing third number.
-        // optLong(key, default) is like getLong but returns a default (0) instead
-        // of crashing if that key happens to be missing from the JSON.
+    private fun Double.toPercent(): Int = Math.round(this).toInt().coerceIn(0, 100)
+
+    private fun percentOf(used: Double, total: Double): Int? =
+        if (total > 0) (used * 100 / total).toPercent() else null
+
+    /** Compact "used/total" with one unit, e.g. "1.2/15GB" or "287/3796MB". */
+    private fun memoryRange(usedMb: Int, totalMb: Int): String {
+        if (totalMb >= 4096) {
+            val used = usedMb / 1024.0
+            val usedStr = if (used < 10) "%.1f".format(used) else "%.0f".format(used)
+            return "$usedStr/${Math.round(totalMb / 1024.0)}GB"
+        }
+        return "$usedMb/${totalMb}MB"
+    }
+
+    private fun claudeRow(label: String, tokens: JSONObject): StatRow? {
         val inTok = tokens.getLong("input") + tokens.optLong("cache_read", 0)
         val outTok = tokens.getLong("output")
         if (inTok == 0L && outTok == 0L) return null
-        return boldLabel(label, "${formatTokens(inTok)} in / ${formatTokens(outTok)} out")
+        return StatRow(label, "${formatTokens(inTok)}↓ ${formatTokens(outTok)}↑")
     }
 
-    /**
-     * Formats a timestamp with date, 24-hour clock, and timezone abbreviation,
-     * e.g. "Aug 21, 14:32 PDT" — shared by the widget's "Updated" line and the
-     * app's per-device row, so both show a last-fetched time you can still
-     * make sense of after traveling somewhere with a different local time
-     * than wherever the monitored device itself sits.
-     */
+    /** "3d 4h", "5h 12m", or "42m". */
+    fun formatUptime(seconds: Long): String {
+        val d = seconds / 86400; val h = (seconds % 86400) / 3600; val m = (seconds % 3600) / 60
+        return when {
+            d > 0 -> "${d}d ${h}h"
+            h > 0 -> "${h}h ${m}m"
+            else -> "${m}m"
+        }
+    }
+
     fun timestampString(millis: Long): String =
         SimpleDateFormat("MMM d, HH:mm zzz", Locale.getDefault()).format(Date(millis))
 
-    /**
-     * Shrinks a raw token count into a compact human-readable string:
-     * 500 -> "500", 45000 -> "45K", 2300000 -> "2.3M".
-     */
     fun formatTokens(count: Long): String {
         if (count < 1000) return count.toString()
         val k = count / 1000.0

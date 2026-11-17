@@ -3,6 +3,7 @@ package com.sysmonwidget.app
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
+import android.view.View
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
 
@@ -50,7 +51,7 @@ class StatsRemoteViewsFactory(
     // pre-built here rather than computing them fresh on every getViewAt() call,
     // since getCount()/getViewAt() can be called several times in quick
     // succession while the list is drawing.
-    private var rows: List<CharSequence> = emptyList()
+    private var rows: List<StatRow> = emptyList()
 
     // Called once when this factory is first created. We have nothing to set up
     // up front — everything happens in onDataSetChanged() below — but the
@@ -78,7 +79,11 @@ class StatsRemoteViewsFactory(
         val enabledStats = if (statsPref.isNullOrBlank()) {
             StatsFormat.ALL_KEYS.toSet()
         } else {
-            statsPref.split(",").toSet()
+            val saved = statsPref.split(",").toSet()
+            // Widgets set up before CPU/Temp/Load/Uptime existed get them turned
+            // on automatically (they never had the chance to pick them).
+            val version = prefs.getInt("widget_${appWidgetId}_stats_version", 1)
+            if (version < StatsFormat.STATS_PREF_VERSION) saved + StatsFormat.KEYS_ADDED_V2 else saved
         }
 
         // SysMonWidgetProvider (or the app) is what actually talks to the
@@ -120,12 +125,40 @@ class StatsRemoteViewsFactory(
      */
     override fun getViewAt(position: Int): RemoteViews {
         val views = RemoteViews(context.packageName, R.layout.widget_stat_item)
-        views.setTextViewText(R.id.statText, rows[position])
+        // Tapping a cell refreshes, same as tapping anywhere else on the widget
+        // (pairs with setPendingIntentTemplate in SysMonWidgetProvider).
+        views.setOnClickFillInIntent(R.id.statCell, Intent())
+        val row = rows.getOrNull(position) ?: return views
+        views.setTextViewText(R.id.statLabel, row.label)
+        views.setTextViewText(R.id.statValue, row.value)
+
+        // Show exactly one of the three colored bars (or none): teal under 75%,
+        // yellow 75-89%, red 90%+.
+        val pct = row.percent
+        val shown = when {
+            pct == null -> 0
+            pct >= 90 -> R.id.statBarHot
+            pct >= 75 -> R.id.statBarWarn
+            else -> R.id.statBarOk
+        }
+        for (bar in intArrayOf(R.id.statBarOk, R.id.statBarWarn, R.id.statBarHot)) {
+            if (bar == shown) {
+                views.setViewVisibility(bar, View.VISIBLE)
+                views.setProgressBar(bar, 100, pct ?: 0, false)
+            } else {
+                views.setViewVisibility(bar, View.GONE)
+            }
+        }
+
+        // Status: green-ish teal when online, red when not.
+        if (row.label == "Status") {
+            views.setTextColor(R.id.statValue, if (row.value == "Online") 0xFF00E0B8.toInt() else 0xFFE8404D.toInt())
+        } else {
+            views.setTextColor(R.id.statValue, 0xFFF5F5FF.toInt())
+        }
         return views
     }
 
-    // We don't show a placeholder while a row is loading (returning null means
-    // "no special loading view, just leave it blank until ready").
     override fun getLoadingView(): RemoteViews? = null
 
     // All our rows use the exact same layout (widget_stat_item.xml), so there's

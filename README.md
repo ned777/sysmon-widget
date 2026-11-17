@@ -12,8 +12,9 @@ tap it.
 Two independent pieces:
 
 1. **`agent/monitor_agent.py`** — a single-file, stdlib-only Python HTTP
-   server. `GET /stats` returns a JSON snapshot: RAM used/total, storage
-   used/total for `/`, and Claude Code token usage aggregated from every
+   server. `GET /stats` returns a JSON snapshot: CPU usage %, core count and
+   load averages, hottest CPU temperature (when the machine exposes a
+   sensor), uptime, RAM used/total, storage used/total for `/`, and Claude Code token usage aggregated from every
    `~/.claude/projects/**/*.jsonl` transcript on that machine, both for
    today and for a rolling 7-day window.
 2. **The Android app** (`app/`) — lets you register one or more devices

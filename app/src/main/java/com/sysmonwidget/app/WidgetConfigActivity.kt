@@ -102,8 +102,12 @@ class WidgetConfigActivity : AppCompatActivity() {
             // them as one comma-separated string — StatsRemoteViewsFactory reads
             // this back later by splitting on "," (see SysMonRemoteViewsService.kt).
             val enabled = mutableListOf<String>()
+            if (findViewById<CheckBox>(R.id.checkCpu).isChecked) enabled.add(StatsFormat.KEY_CPU)
             if (findViewById<CheckBox>(R.id.checkRam).isChecked) enabled.add(StatsFormat.KEY_RAM)
             if (findViewById<CheckBox>(R.id.checkStorage).isChecked) enabled.add(StatsFormat.KEY_STORAGE)
+            if (findViewById<CheckBox>(R.id.checkTemp).isChecked) enabled.add(StatsFormat.KEY_TEMP)
+            if (findViewById<CheckBox>(R.id.checkLoad).isChecked) enabled.add(StatsFormat.KEY_LOAD)
+            if (findViewById<CheckBox>(R.id.checkUptime).isChecked) enabled.add(StatsFormat.KEY_UPTIME)
             if (findViewById<CheckBox>(R.id.checkClaudeDaily).isChecked) enabled.add(StatsFormat.KEY_CLAUDE_DAILY)
             if (findViewById<CheckBox>(R.id.checkClaudeWeekly).isChecked) enabled.add(StatsFormat.KEY_CLAUDE_WEEKLY)
             if (findViewById<CheckBox>(R.id.checkStatus).isChecked) enabled.add(StatsFormat.KEY_STATUS)
@@ -111,6 +115,7 @@ class WidgetConfigActivity : AppCompatActivity() {
             getSharedPreferences("sysmon", MODE_PRIVATE)
                 .edit()
                 .putString("widget_${appWidgetId}_stats", enabled.joinToString(","))
+                .putInt("widget_${appWidgetId}_stats_version", StatsFormat.STATS_PREF_VERSION)
                 .apply()
 
             // This is the crucial final step of any widget configuration screen:

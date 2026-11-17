@@ -1,17 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  One row inside the widget's scrolling stats list — "inflated" once per row by
-  StatsRemoteViewsFactory.getViewAt() in SysMonRemoteViewsService.kt. The actual
-  text (a styled SpannableString built by StatsFormat.boldLabel(), with the
-  label part teal+bold and the value part off-white) is set in code — this
-  XML just declares the single TextView and its default look.
+  One cell of the widget's two-column stats grid — inflated per stat by
+  StatsRemoteViewsFactory.getViewAt(). A single line: short teal label on the
+  left, compact white value right-aligned, and (for CPU / RAM / Disk / Temp) a
+  thin 3dp usage bar underneath. There are three copies of the bar, one per
+  color (ok/warn/hot), because RemoteViews can't recolor a ProgressBar on older
+  Android versions — the factory shows the right one and hides the others.
 -->
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/statText"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/statCell"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingTop="3dp"
-    android:paddingBottom="3dp"
-    android:textColor="@color/retro_white"
-    android:textSize="14sp"
-    android:text="--" />
+    android:orientation="vertical"
+    android:paddingTop="2dp"
+    android:paddingBottom="2dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:baselineAligned="true">
+
+        <TextView
+            android:id="@+id/statLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:includeFontPadding="false"
+            android:textColor="@color/retro_teal"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:singleLine="true"
+            android:text="--" />
+
+        <TextView
+            android:id="@+id/statValue"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:includeFontPadding="false"
+            android:gravity="end"
+            android:textColor="@color/retro_white"
+            android:textSize="12sp"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:text="--" />
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/statBarOk"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:layout_marginTop="3dp"
+        android:max="100"
+        android:progressDrawable="@drawable/widget_bar_ok"
+        android:visibility="gone" />
+
+    <ProgressBar
+        android:id="@+id/statBarWarn"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:layout_marginTop="3dp"
+        android:max="100"
+        android:progressDrawable="@drawable/widget_bar_warn"
+        android:visibility="gone" />
+
+    <ProgressBar
+        android:id="@+id/statBarHot"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:layout_marginTop="3dp"
+        android:max="100"
+        android:progressDrawable="@drawable/widget_bar_hot"
+        android:visibility="gone" />
+
+</LinearLayout>
