@@ -44,6 +44,9 @@ class SysMonWidgetProvider : AppWidgetProvider() {
         // built-in system action.
         const val ACTION_REFRESH = "com.sysmonwidget.app.ACTION_REFRESH"
 
+        // Shortest time "Updating…" is shown after a tap-to-refresh.
+        private const val MIN_UPDATING_MS = 1200L
+
         // Like ACTION_REFRESH, but repaints every widget from whatever is
         // ALREADY sitting in DeviceStatsCache instead of making a fresh
         // network call — used when the app itself just fetched new data (on
@@ -131,8 +134,12 @@ class SysMonWidgetProvider : AppWidgetProvider() {
                     // neither action comes with specific widget ids attached
                     // the way onUpdate()'s appWidgetIds does.
                     val ids = manager.getAppWidgetIds(ComponentName(context, SysMonWidgetProvider::class.java))
+                    // "Updating…" stays up for at least MIN_UPDATING_MS — a LAN fetch
+                    // usually finishes in a few ms, so without this it would just flash
+                    // by and you couldn't tell the tap did anything.
+                    val showUntil = if (forceFetch) System.currentTimeMillis() + MIN_UPDATING_MS else 0L
                     if (forceFetch) ids.forEach { showUpdating(context, manager, it) }
-                    ids.forEach { updateOneWidget(context, manager, it, forceFetch) }
+                    ids.forEach { updateOneWidget(context, manager, it, forceFetch, showUntil) }
                 } finally {
                     pending.finish()
                 }
@@ -185,7 +192,7 @@ class SysMonWidgetProvider : AppWidgetProvider() {
      * that make it show up correctly on the home screen. This is the heart of the
      * whole app — almost everything else exists to support this one function.
      */
-    private fun updateOneWidget(context: Context, manager: AppWidgetManager, id: Int, forceFetch: Boolean = true) {
+    private fun updateOneWidget(context: Context, manager: AppWidgetManager, id: Int, forceFetch: Boolean = true, showUntil: Long = 0L) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
         // Start building a fresh RemoteViews from our widget's XML layout. Every
@@ -274,6 +281,9 @@ class SysMonWidgetProvider : AppWidgetProvider() {
         // Hand the finished RemoteViews to Android, which forwards it to the
         // launcher process to actually be drawn on the home screen.
         bindStats(views, result.json, StatsFormat.enabledStatsFor(prefs, id))
+        // Keep "Updating…" on screen until its minimum time is up (see onReceive).
+        val wait = showUntil - System.currentTimeMillis()
+        if (wait > 0) Thread.sleep(wait)
         manager.updateAppWidget(id, views)
     }
 
