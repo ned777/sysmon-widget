@@ -52,8 +52,11 @@ pitch-black card with a 2dp teal outline, teal labels and white values.
   — e.g. an older agent without temperature/uptime, or a machine with no
   temperature sensor.
 - **Tapping:** tap anywhere on the widget to open the app. Tap the bottom
-  strip (**Tap below to refresh**) to fetch fresh stats; it shows
-  **Updating…** while the request runs.
+  strip (**Tap below to refresh**) to fetch fresh stats. While it works,
+  the two bottom lines are hidden and a bigger **Updating…** takes their
+  place, so you can tell it's busy. It stays up for at least 1.2 seconds,
+  because a fetch on the home network finishes so fast it would otherwise
+  just flash by. It stays longer if the fetch is slow.
 - **Manual refresh only** — periodic auto-refresh is off
   (`updatePeriodMillis="0"`), so the widget never polls in the background.
   If the agent doesn't answer, the widget keeps the last successful reading
