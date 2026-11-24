@@ -69,7 +69,7 @@ keep it short; the app shows both.
 
 The app (**Device Monitor Agent**) is styled like the widget: black
 background, a centered header with the gauge icon, and one teal-outlined
-card per device showing its name, address, every stat it reports
+card per device (4dp teal outline, the same as the widget border) showing its name, address, every stat it reports
 (including CPU and Claude Code daily/weekly tokens) and when it was last
 updated. Pull down to refresh all devices; ✎ edits a device and ✕
 removes it; **+ Add device** registers a new one.
