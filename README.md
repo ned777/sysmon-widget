@@ -40,7 +40,7 @@ Two independent pieces:
 ```
 
 Same look as the rest of my widget family (Today, Weather, Garage):
-pitch-black card with a 2dp teal outline, teal labels and white values.
+pitch-black card with a 4dp teal outline, teal labels and white values.
 
 - **Fixed rows, no scrolling.** IP address, then RAM and Disk on one line
   each with an inline usage bar, then one summary line for temperature,
