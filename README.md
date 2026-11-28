@@ -40,7 +40,7 @@ Two independent pieces:
 ```
 
 Same look as the rest of my widget family (Today, Weather, Garage):
-pitch-black card with a 4dp teal outline, teal labels and white values.
+pitch-black card with a 2dp teal outline, teal labels and white values.
 
 - **Fixed rows, no scrolling.** IP address, then RAM and Disk on one line
   each with an inline usage bar, then one summary line for temperature,
@@ -69,7 +69,7 @@ keep it short; the app shows both.
 
 The app (**Device Monitor Agent**) is styled like the widget: black
 background, a centered header with the gauge icon, and one teal-outlined
-card per device (4dp teal outline, the same as the widget border) showing its name, address, every stat it reports
+card per device showing its name, address, every stat it reports
 (including CPU and Claude Code daily/weekly tokens) and when it was last
 updated. Pull down to refresh all devices; ✎ edits a device and ✕
 removes it; **+ Add device** registers a new one.

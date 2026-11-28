@@ -3,7 +3,7 @@
 <inset xmlns:android="http://schemas.android.com/apk/res/android" android:inset="16dp">
     <shape android:shape="rectangle">
         <solid android:color="@color/widget_bg" />
-        <stroke android:width="4dp" android:color="@color/retro_teal" />
+        <stroke android:width="2dp" android:color="@color/retro_teal" />
         <corners android:radius="20dp" />
     </shape>
 </inset>
